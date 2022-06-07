@@ -16,7 +16,7 @@ const getIncompatibilityList = (courseCode) => {
             }
         });
     });
-}
+};
 
 const asyncGetIncompatibilityList = async(rows, resolve) =>{
     const tmp = [];
@@ -25,7 +25,7 @@ const asyncGetIncompatibilityList = async(rows, resolve) =>{
         tmp.push(new Course(row.CODE, row.NAME, row.CREDITS, row.MAX_STUDENTS, incompatibilityList, row.DEPENDENCY));
     }
     resolve(tmp);    
-}
+};
 
 exports.getAllCourses = () => {
     return new Promise((resolve, reject) => {
@@ -50,5 +50,77 @@ exports.getCourseByCode = (courseCode) => {
                 asyncGetIncompatibilityList(row === undefined? [] : [row], resolve);
             }
         });
+    });
+};
+
+exports.getStudyPlanCourses = (email) => {
+    return new Promise((resolve, reject) => {
+        const sql = "SELECT C.CODE, C.NAME, C.CREDITS, C.MAX_STUDENTS, C.DEPENDENCY " +
+                    "FROM STUDY_PLANS AS SP, COURSES AS C " +
+                    "WHERE SP.COURSE_CODE = C.CODE AND SP.STUDENT_EMAIL = ?";
+        db.all(sql, [email], (err, rows) => {
+            if(err){
+                reject(err);
+            }else{
+                asyncGetIncompatibilityList(rows, resolve);
+            }
+        });
+    });
+};
+
+exports.addCourseToStudyPlan = (courseCode, email) => {
+    return new Promise((resolve, reject) => {
+        const sql = "INSERT INTO STUDY_PLANS(COURSE_CODE, STUDENT_EMAIL) VALUES(?,?)";
+        db.run(sql, [courseCode, email], function (err){
+            if(err){
+                reject(err);
+            }else{
+                resolve(this.changes);
+            }
+        });
+    });
+};
+
+exports.deleteCourseFromStudyPlan = (courseCode, email) => {
+    return new Promise((resolve, reject) => {
+        const sql = "DELETE FROM STUDY_PLANS WHERE COURSE_CODE = ? AND STUDENT_EMAIL = ?";
+        db.run(sql, [courseCode, email], function (err){
+            if(err){
+                reject(err);
+            }else{
+                resolve(this.changes);
+            }
+        });
+    });
+};
+
+exports.getCompatibleCourses = (email) => {
+    return new Promise((resolve, reject) => {
+        const sql = "SELECT * " +
+                    "FROM COURSES AS C " +
+                    "WHERE C.CODE NOT IN( " + 
+                        "SELECT COURSE_CODE " +
+                        "FROM STUDY_PLANS " +
+                        "WHERE STUDENT_EMAIL = ? " +
+                    ") AND C.CODE NOT IN( " +
+                        "SELECT INCOMPATIBLE_COURSE_CODE " +
+                        "FROM INCOMPATIBILITIES " +
+                        "WHERE COURSE_CODE IN( " +
+                            "SELECT COURSE_CODE " +
+                            "FROM STUDY_PLANS " +
+                            "WHERE STUDENT_EMAIL = ? " +
+                    "))" +
+                    "AND (C.DEPENDENCY IN( " +
+                        "SELECT COURSE_CODE " +
+                        "FROM STUDY_PLANS " +
+                        "WHERE STUDENT_EMAIL = ? " +
+                    ") OR C.DEPENDENCY IS NULL)";
+        db.all(sql, [email,email,email], (err, rows) => {
+            if(err){
+                reject(err)
+            }else{
+                asyncGetIncompatibilityList(rows, resolve);
+            }
+        })
     });
 }
