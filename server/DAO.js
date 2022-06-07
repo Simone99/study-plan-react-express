@@ -22,7 +22,7 @@ const asyncGetIncompatibilityList = async(rows, resolve) =>{
     const tmp = [];
     for(let row of rows){
         const incompatibilityList = await getIncompatibilityList(row.CODE);
-        tmp.push(new Course(row.CODE, row.NAME, row.CREDITS, row.MAX_STUDENTS, incompatibilityList, row.DEPENDENCY));
+        tmp.push(new Course(row.CODE, row.NAME, row.CREDITS, row.MAX_STUDENTS, row.ENROLLED_STUDENTS, incompatibilityList, row.DEPENDENCY));
     }
     resolve(tmp);    
 };
@@ -55,7 +55,7 @@ exports.getCourseByCode = (courseCode) => {
 
 exports.getStudyPlanCourses = (email) => {
     return new Promise((resolve, reject) => {
-        const sql = "SELECT C.CODE, C.NAME, C.CREDITS, C.MAX_STUDENTS, C.DEPENDENCY " +
+        const sql = "SELECT C.CODE, C.NAME, C.CREDITS, C.MAX_STUDENTS, C.ENROLLED_STUDENTS, C.DEPENDENCY " +
                     "FROM STUDY_PLANS AS SP, COURSES AS C " +
                     "WHERE SP.COURSE_CODE = C.CODE AND SP.STUDENT_EMAIL = ?";
         db.all(sql, [email], (err, rows) => {
@@ -114,7 +114,8 @@ exports.getCompatibleCourses = (email) => {
                         "SELECT COURSE_CODE " +
                         "FROM STUDY_PLANS " +
                         "WHERE STUDENT_EMAIL = ? " +
-                    ") OR C.DEPENDENCY IS NULL)";
+                    ") OR C.DEPENDENCY IS NULL) " +
+                    "AND (C.ENROLLED_STUDENTS < C.MAX_STUDENTS OR C.MAX_STUDENTS IS NULL)";
         db.all(sql, [email,email,email], (err, rows) => {
             if(err){
                 reject(err)
@@ -123,4 +124,4 @@ exports.getCompatibleCourses = (email) => {
             }
         })
     });
-}
+};

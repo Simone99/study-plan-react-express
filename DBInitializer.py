@@ -10,6 +10,7 @@ def initialize_db(cursor):
                                 '''NAME VARCHAR(100) NOT NULL, ''' \
                                 '''CREDITS INTEGER NOT NULL, ''' \
                                 '''MAX_STUDENTS INTEGER, ''' \
+                                '''ENROLLED_STUDENTS INTEGER DEFAULT 0, ''' \
                                 '''DEPENDENCY VARCHAR(7)''' \
                                 ''')'''
 
@@ -37,6 +38,24 @@ def initialize_db(cursor):
                                    '''FOREIGN KEY(STUDENT_EMAIL) REFERENCES STUDENTS(EMAIL)''' \
                                    ''')'''
 
+    create_trigger_increase_studyplan_table = '''CREATE TRIGGER IF NOT EXISTS INCREASE_ENROLLED_STUDENTS ''' \
+                                              '''AFTER INSERT ON STUDY_PLANS ''' \
+                                              '''BEGIN ''' \
+                                              '''UPDATE COURSES ''' \
+                                              '''SET ENROLLED_STUDENTS = ENROLLED_STUDENTS + 1 ''' \
+                                              '''WHERE CODE = NEW.COURSE_CODE; ''' \
+                                              '''END;'''
+
+    create_trigger_decrease_studyplan_table = '''CREATE TRIGGER IF NOT EXISTS DECREASE_ENROLLED_STUDENTS ''' \
+                                              '''AFTER DELETE ON STUDY_PLANS ''' \
+                                              '''BEGIN ''' \
+                                              '''UPDATE COURSES ''' \
+                                              '''SET ENROLLED_STUDENTS = ENROLLED_STUDENTS - 1 ''' \
+                                              '''WHERE CODE = OLD.COURSE_CODE; ''' \
+                                              '''END;'''
+
+    cursor.execute('''DROP TRIGGER IF EXISTS INCREASE_ENROLLED_STUDENTS''')
+    cursor.execute('''DROP TRIGGER IF EXISTS DECREASE_ENROLLED_STUDENTS''')
     cursor.execute('''DROP TABLE IF EXISTS COURSES''')
     cursor.execute('''DROP TABLE IF EXISTS INCOMPATIBILITIES''')
     cursor.execute('''DROP TABLE IF EXISTS STUDENTS''')
@@ -45,6 +64,8 @@ def initialize_db(cursor):
     cursor.execute(create_incompatibility_table_query)
     cursor.execute(create_students_table_query)
     cursor.execute(create_studyplan_table_query)
+    cursor.execute(create_trigger_increase_studyplan_table)
+    cursor.execute(create_trigger_decrease_studyplan_table)
 
 
 def fill_db(cursor):
