@@ -25,7 +25,8 @@ def initialize_db(cursor):
                                   '''EMAIL VARCHAR(50) PRIMARY KEY, ''' \
                                   '''NAME VARCHAR(50) NOT NULL, ''' \
                                   '''SURNAME VARCHAR(50) NOT NULL, ''' \
-                                  '''PASSWORD VARCHAR(64) NOT NULL''' \
+                                  '''PASSWORD VARCHAR(64) NOT NULL, ''' \
+                                  '''FULLTIME INTEGER NOT NULL''' \
                                   ''')'''
 
     create_studyplan_table_query = '''CREATE TABLE IF NOT EXISTS STUDY_PLANS(''' \
@@ -49,7 +50,9 @@ def initialize_db(cursor):
 def fill_db(cursor):
     courses_query = '''INSERT INTO COURSES(CODE, NAME, CREDITS, MAX_STUDENTS, DEPENDENCY) VALUES(?,?,?,?,?)'''
     dependency_query = '''INSERT INTO INCOMPATIBILITIES(COURSE_CODE, INCOMPATIBLE_COURSE_CODE) VALUES(?,?)'''
-    students_query = '''INSERT INTO STUDENTS(EMAIL, NAME, SURNAME, PASSWORD) VALUES(?,?,?,?)'''
+    students_query = '''INSERT INTO STUDENTS(EMAIL, NAME, SURNAME, PASSWORD, FULLTIME) VALUES(?,?,?,?,?)'''
+    study_plan_query = '''INSERT INTO STUDY_PLANS(COURSE_CODE, STUDENT_EMAIL) VALUES(?,?)'''
+    
     courses_list = [
         ('02GOLOV', 'Architetture dei sistemi di elaborazione', 12, None, None),
         ('02LSEOV', 'Computer architectures', 12, None, None),
@@ -94,12 +97,31 @@ def fill_db(cursor):
         ('01NYHOV', '02GRSOV')
     ]
     students_list = [
-        ('s295316@studenti.polito.it', 'Simone', 'Zanella', hashlib.sha256(b'password').hexdigest())
+        ('s295316@studenti.polito.it', 'Simone', 'Zanella', hashlib.sha256(b'password').hexdigest(), True),
+        ('s123456@studenti.polito.it', 'Name1', 'Surname2', hashlib.sha256(b'password').hexdigest(), False),
+        ('s956325@studenti.polito.it', 'Name2', 'Surname2', hashlib.sha256(b'password').hexdigest(), True),
+        ('s462034@studenti.polito.it', 'Name3', 'Surname3', hashlib.sha256(b'password').hexdigest(), False),
+        ('s254991@studenti.polito.it', 'Name4', 'Surname4', hashlib.sha256(b'password').hexdigest(), False)
+    ]
+    study_plan_list = [
+        ('01URSPD', 's295316@studenti.polito.it'),
+        ('01URSPD', 's123456@studenti.polito.it'),
+        ('01NYHOV', 's295316@studenti.polito.it'),
+        ('01TXYOV', 's295316@studenti.polito.it'),
+        ('01TYMOV', 's295316@studenti.polito.it'),
+        ('02LSEOV', 's295316@studenti.polito.it'),
+        ('01NYHOV', 's123456@studenti.polito.it'),
+        ('01URROV', 's123456@studenti.polito.it'),
+        ('01NYHOV', 's956325@studenti.polito.it'),
+        ('03UEWOV', 's956325@studenti.polito.it'),
+        ('01TYDOV', 's956325@studenti.polito.it'),
+        ('01SQJOV', 's462034@studenti.polito.it')
     ]
 
     cursor.executemany(courses_query, courses_list)
     cursor.executemany(dependency_query, dependencies_list)
     cursor.executemany(students_query, students_list)
+    cursor.executemany(study_plan_query, study_plan_list)
 
 
 if __name__ == '__main__':
