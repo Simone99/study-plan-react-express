@@ -9,13 +9,6 @@
 
 ## API Server
 
-- POST `/api/login`
-  - request parameters and request body content
-  - response body content
-- GET `/api/something`
-  - request parameters
-  - response body content
-
 HTTP Method: GET \
 URL: `/api/courses`\
 Description: Retrieve all courses stored in DB\
@@ -146,8 +139,8 @@ Sample response body:
 Error responses: `500 Internal Server Error`, `422 Unprocessable entity`, `404 Not found`
 
 HTTP Method: GET \
-URL: `/api/students/:email/courses`\
-Description: Retrieve courses stored in DB according to the user specified in the URL\
+URL: `/api/students/courses`\
+Description: Retrieve courses stored in DB according to the user logged\
 Sample request body: _None_\
 Sample response: `200 OK`\
 Sample response body:
@@ -206,11 +199,11 @@ Sample response body:
 ]
 ```
 
-Error responses: `500 Internal Server Error`, `422 Unprocessable entity`, `404 Not found`
+Error responses: `500 Internal Server Error`
 
 HTTP Method: GET \
-URL: `/api/students/:email/compatibleCourses`\
-Description: Retrieve courses compatible with the current study plan of a student\
+URL: `/api/students/compatibleCourses`\
+Description: Retrieve courses compatible with the current study plan of a student logged in\
 Sample request body: _None_\
 Sample response: `200 OK`\
 Sample response body:
@@ -269,10 +262,10 @@ Sample response body:
 ]
 ```
 
-Error responses: `500 Internal Server Error`, `422 Unprocessable entity`
+Error responses: `500 Internal Server Error`
 
 HTTP Method: POST \
-URL: `/api/students/:email/courses` \
+URL: `/api/students/courses` \
 Description: Add a new course to the study plan \
 Sample request body:
 
@@ -282,15 +275,50 @@ Sample request body:
 
 Sample response: `201 Created` \
 Sample response body: _None_ \
-Error responses: `503 Service unavailable`, `422 Unprocessable entity`
+Error responses: `503 Service unavailable`
 
 HTTP Method: DELETE \
-URL: `/api/students/:email/courses/:code`\
+URL: `/api/students/courses/:code`\
 Description: Delete a course from student study plan\
 Sample request body: _None_\
 Sample response: `204 No Content`\
 Sample response body: _None_\
-Error responses: `503 Service Unavailable`, `422 Unprocessable entity`
+Error responses: `503 Service Unavailable`
+
+HTTP Method: POST \
+URL: `/api/login`\
+Description: Authenticate a user\
+Sample request body:
+
+```
+{username:'s295316@studenti.polito.it', password:'password'}
+```
+
+Sample response: `201 Created`\
+Sample response body: _None_\
+Error responses: `503 Service unavailable`
+
+HTTP Method: DELETE \
+URL: `/api/logout`\
+Description: Log out user\
+Sample request body: _None_\
+Sample response: `204 No Content`\
+Sample response body: _None_\
+Error responses: `503 Service Unavailable`
+
+HTTP Method: GET \
+URL: `/api/sessions/current`\
+Description: Retrieve user session if still up\
+Sample request body: _None_\
+Sample response: `200 OK`\
+Sample response body:
+
+```
+{email: 's295316@studenti.polito.it', name: 'Simone', surname: 'Zanella', fulltime: 1}
+```
+
+Error responses: `500 Internal Server Error`, `401 Not authenticated`
+
 
 ## Database Tables
 

@@ -1,6 +1,7 @@
 'use strict';
 
 const sqlite = require('sqlite3');
+const sjcl = require('sjcl');
 const {Course} = require('./Course');
 
 const db = new sqlite.Database('StudyPlanDB.db', err => { if (err) throw err;});
@@ -123,5 +124,39 @@ exports.getCompatibleCourses = (email) => {
                 asyncGetIncompatibilityList(rows, resolve);
             }
         })
+    });
+};
+
+exports.getUser = (username, password) => {
+    return new Promise((resolve, reject) => {
+        const sql = "SELECT * FROM STUDENTS WHERE EMAIL = ?";
+        db.get(sql, [username], (err, row) => {
+            if(err){
+                reject(err);
+            }else{
+                if (!row){
+                    resolve(false);
+               }else{
+                    const user = {username: row.EMAIL, name: row.NAME, surname: row.SURNAME, fulltime: row.FULLTIME};
+                    /*crypto.scrypt(password, row.salt, 32, function(err, hashedPassword) {
+                        if (err){
+                            reject(err);
+                        }else{
+                            if(!crypto.timingSafeEqual(Buffer.from(row.hash, 'hex'), hashedPassword))
+                                resolve(false);
+                            else
+                                resolve(user);  
+                        }
+                    });*/
+                    if(row.PASSWORD === sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password))){
+                        console.log('Login successful!');
+                        resolve(user);
+                    }else{
+                        console.log('Oh shit!');
+                        resolve(false);
+                    }
+               }
+            }
+        });
     });
 };

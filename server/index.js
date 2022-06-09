@@ -4,7 +4,10 @@ const express = require('express');
 const morgan = require('morgan');
 const DAO = require('./DAO');
 const cors = require('cors');
-const {check, param, body, validationResult} = require('express-validator');
+const {param, body, validationResult} = require('express-validator');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const session = require('express-session');
 
 // init express
 const app = new express();
@@ -12,13 +15,42 @@ const PORT = 3001;
 
 const corsOptions = {
   origin: 'http://localhost:3000',
-  optionsSuccessStatus: 200/*,
-  credentials: true*/
+  optionsSuccessStatus: 200,
+  credentials: true
 };
 
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use(session({
+  secret: "I hope this exam goes well...",
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.session());
+
+passport.serializeUser((user, cb) => {
+  cb(null, {email: user.username, name: user.name, surname: user.surname, fulltime: user.fulltime});
+});
+
+passport.deserializeUser((user, cb) => {
+  return cb(null, user);
+});
+
+passport.use(new LocalStrategy( function verify (username, password, callback) {
+  DAO.getUser(username, password).then((user) => {
+      if (!user)
+          return callback(null, false, {message: 'Incorrect username and/or password.'});
+      return callback(null, user);
+  });
+}));
+
+const isLoggedIn = (req, res, next) => {
+  if(req.isAuthenticated())
+      return next();
+  return res.status(400).json({message : "not authenticated"});
+}
+
 
 app.get('/api/courses', async (req, res) => {
   try{
@@ -48,14 +80,9 @@ app.get('/api/courses/:code', param('code').isLength(7), async (req, res) => {
   }
 });
 
-//I will protect this API so that only the logged user can access it and I'll use credentials in order to retrieve the email address
-app.get('/api/students/:email/courses', param('email').isEmail(), async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
+app.get('/api/students/courses', isLoggedIn, async (req, res) => {
   try{
-    const result = await DAO.getStudyPlanCourses(req.params.email);
+    const result = await DAO.getStudyPlanCourses(req.user.email);
     return res.status(200).json(result);
   }catch(err){
     console.log(err);
@@ -63,14 +90,9 @@ app.get('/api/students/:email/courses', param('email').isEmail(), async (req, re
   }
 });
 
-//As before I'll retrieve the email from logged user session
-app.get('/api/students/:email/compatibleCourses', param('email').isEmail(), async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
+app.get('/api/students/compatibleCourses', isLoggedIn, async (req, res) => {
   try{
-    const result = await DAO.getCompatibleCourses(req.params.email);
+    const result = await DAO.getCompatibleCourses(req.user.email);
     return res.status(200).json(result);
   }catch(err){
     console.log(err);
@@ -78,14 +100,13 @@ app.get('/api/students/:email/compatibleCourses', param('email').isEmail(), asyn
   }
 });
 
-//As before I'll retrieve the email from logged user session
-app.post('/api/students/:email/courses', param('email').isEmail(), body('courseCode').isLength(7), async (req, res) => {
+app.post('/api/students/courses', isLoggedIn, body('courseCode').isLength(7), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
   }
   try{
-    const result = await DAO.addCourseToStudyPlan(req.body.courseCode, req.params.email);
+    const result = await DAO.addCourseToStudyPlan(req.body.courseCode, req.user.email);
     return res.status(201).end();
   }catch(err){
     console.log(err);
@@ -93,20 +114,37 @@ app.post('/api/students/:email/courses', param('email').isEmail(), body('courseC
   }
 });
 
-//As before I'll retrieve the email from logged user session
-app.delete('/api/students/:email/courses/:code', param('email').isEmail(), param('code').isLength(7), async (req, res) => {
+app.delete('/api/students/courses/:code', isLoggedIn, param('code').isLength(7), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
   }
   try{
-    const result = await DAO.deleteCourseFromStudyPlan(req.params.code, req.params.email);
+    const result = await DAO.deleteCourseFromStudyPlan(req.params.code, req.user.email);
     return res.status(204).end();
   }catch(err){
     console.log(err);
     return res.status(503).end();
   }
 });
+
+app.post('/api/login', passport.authenticate('local'), (req, res) => {
+  res.json(req.user);
+});
+
+app.delete('/api/logout', (req, res) => {
+  req.logout(() => {
+      res.end();
+  });
+});
+
+app.get('/api/sessions/current', (req, res) => {
+  if(req.isAuthenticated()) {
+    res.json(req.user);}
+  else
+    res.status(401).json({error: 'Not authenticated'});
+});
+
 
 // activate the server
 app.listen(PORT, () => {
