@@ -26,7 +26,7 @@ function CoursesListHeader(props){
 function CoursesListBody(props){
     return (
         <tbody>
-            {props.courses.map(course => <CoursesListRow course = {course}/>)}
+            {props.courses.map(course => <CoursesListRow course = {course} key = {course.code}/>)}
         </tbody>
     );
 }
@@ -70,11 +70,11 @@ function CourseListAccordion(props){
                     <Accordion.Header>Additional info</Accordion.Header>
                     <Accordion.Body>
                         <p>Incompatible courses:</p>
-                        <p>{props.course.incompatibleWith.length === 0? 'None!\n' : 
+                        {props.course.incompatibleWith.length === 0? 'None!\n' : 
                             <ul>
-                                {props.course.incompatibleWith.map(courseCode => <li>{courseCode}</li>)}
+                                {props.course.incompatibleWith.map(courseCode => <li key={courseCode}>{courseCode}</li>)}
                             </ul>
-                        }</p>
+                        }
                         <p>Preparatory course:</p>
                         <p>{props.course.preparatoryCourse? props.course.preparatoryCourse : 'None!\n'}</p>
                     </Accordion.Body>

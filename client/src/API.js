@@ -1,17 +1,27 @@
-'use strict';
-
 const SERVER_URL = 'http://localhost:3001';
 
 const getAllCourses = async () => {
     const res = await fetch(SERVER_URL + '/api/courses', {
         credentials: 'include'
     });
-    let coursesList = await res.json();;
+    let coursesList = await res.json();
     if(res.ok){
         return coursesList;
     }else{
         throw coursesList;
     }
+};
+
+const getStudyPlan = async () => {
+  const res = await fetch(SERVER_URL + '/api/students/courses', {
+    credentials: 'include'
+  });
+  let courseList = await res.json();
+  if(res.ok){
+    return courseList;
+  }else{
+    throw courseList;
+  }
 };
 
 const logIn = async(credentials) => {
@@ -55,4 +65,4 @@ const logout = async() => {
 };
 
 
-export{getAllCourses, logIn, getUserInfo, logout};
+export{getAllCourses, logIn, getUserInfo, logout, getStudyPlan};

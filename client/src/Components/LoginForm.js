@@ -1,5 +1,6 @@
 import { useState, useContext } from "react";
 import { Button, Form, Row } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import {logIn} from '../API';
 import UserContext from "../Context/UserContext";
 
@@ -7,19 +8,20 @@ function LoginForm(props){
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const userState = useContext(UserContext);
+    const navigate = useNavigate();
 
     const handleLogin = (event) => {
         const handleLoginAsync = async() => {
             try {
                 const user = await logIn({username:email, password});
                 userState.setLoggedUser(user);
+                navigate('/');
             }catch(err) {
                 console.log(err);
             }    
         };
         event.preventDefault();
         handleLoginAsync();
-        //navigate('/All');
     };
 
     return(

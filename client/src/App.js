@@ -1,11 +1,12 @@
-import { Container, Row, Alert, Col} from 'react-bootstrap'
+import { Container, Row, Col} from 'react-bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import {useState, useEffect, Navigate} from 'react'
+import {useState, useEffect} from 'react'
 import {BrowserRouter as Router, Routes, Route, Outlet} from 'react-router-dom'
 import { CoursesList } from './Components/CoursesList';
 import { CourseNavBar } from './Components/CourseNavBar';
 import { LoginForm } from './Components/LoginForm';
+import { LoggedUserPage } from './Components/LoggedUserPage'
 import {getAllCourses, getUserInfo} from './API';
 import UserContext from './Context/UserContext'
 
@@ -49,7 +50,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element = {<Layout/>}>
-              <Route index element={<HomePage courses = {courses}/>}/>
+              <Route index element={loggedUser? <LoggedUserPage courses = {courses}/> : <HomePage courses = {courses}/>}/>
               <Route path="/login" element={<LoginForm/>}/>
             </Route>
           </Routes>
