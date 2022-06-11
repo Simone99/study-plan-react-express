@@ -138,21 +138,9 @@ exports.getUser = (username, password) => {
                     resolve(false);
                }else{
                     const user = {username: row.EMAIL, name: row.NAME, surname: row.SURNAME, fulltime: row.FULLTIME};
-                    /*crypto.scrypt(password, row.salt, 32, function(err, hashedPassword) {
-                        if (err){
-                            reject(err);
-                        }else{
-                            if(!crypto.timingSafeEqual(Buffer.from(row.hash, 'hex'), hashedPassword))
-                                resolve(false);
-                            else
-                                resolve(user);  
-                        }
-                    });*/
                     if(row.PASSWORD === sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password))){
-                        console.log('Login successful!');
                         resolve(user);
                     }else{
-                        console.log('Oh shit!');
                         resolve(false);
                     }
                }
