@@ -27,7 +27,7 @@ def initialize_db(cursor):
                                   '''NAME VARCHAR(50) NOT NULL, ''' \
                                   '''SURNAME VARCHAR(50) NOT NULL, ''' \
                                   '''PASSWORD VARCHAR(64) NOT NULL, ''' \
-                                  '''FULLTIME INTEGER NOT NULL''' \
+                                  '''FULLTIME INTEGER''' \
                                   ''')'''
 
     create_studyplan_table_query = '''CREATE TABLE IF NOT EXISTS STUDY_PLANS(''' \
@@ -122,7 +122,7 @@ def fill_db(cursor):
         ('s123456@studenti.polito.it', 'Name1', 'Surname2', hashlib.sha256(b'password').hexdigest(), False),
         ('s956325@studenti.polito.it', 'Name2', 'Surname2', hashlib.sha256(b'password').hexdigest(), True),
         ('s462034@studenti.polito.it', 'Name3', 'Surname3', hashlib.sha256(b'password').hexdigest(), False),
-        ('s254991@studenti.polito.it', 'Name4', 'Surname4', hashlib.sha256(b'password').hexdigest(), False)
+        ('s254991@studenti.polito.it', 'Name4', 'Surname4', hashlib.sha256(b'password').hexdigest(), None)
     ]
     study_plan_list = [
         ('01URSPD', 's295316@studenti.polito.it'),
