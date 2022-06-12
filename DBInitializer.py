@@ -27,7 +27,7 @@ def initialize_db(cursor):
                                   '''NAME VARCHAR(50) NOT NULL, ''' \
                                   '''SURNAME VARCHAR(50) NOT NULL, ''' \
                                   '''PASSWORD VARCHAR(64) NOT NULL, ''' \
-                                  '''FULLTIME INTEGER''' \
+                                  '''FULLTIME BOOLEAN''' \
                                   ''')'''
 
     create_studyplan_table_query = '''CREATE TABLE IF NOT EXISTS STUDY_PLANS(''' \

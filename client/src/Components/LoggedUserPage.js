@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from "react";
-import { Row, Col, Card, Dropdown, Button, Badge, Modal } from "react-bootstrap";
+import { Row, Col, Card, Dropdown, Button, Badge, Modal, ButtonGroup, ToggleButton } from "react-bootstrap";
 import { getStudyPlan } from '../API';
 import { CoursesList } from "./CoursesList";
 import { StudyPlanList } from "./StudyPlanList"
@@ -8,10 +8,17 @@ import UserContext from '../Context/UserContext';
 function LoggedUserPage(props){
     const userState = useContext(UserContext);
     const [studyPlan, setStudyPlan] = useState([]);
+    const [totalCredits, setTotalCredits] = useState(0);
     const [selectedCourseToAdd, setSelectedCourseToAdd] = useState();
     const [selectedCoursesToRemove, setSelectedCoursesToRemove] = useState([]);
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime);
+
+    const creditsBoundaries = {
+        true : [60, 80],
+        false : [20, 40]
+    };
 
     const getStudyPlanAsync = async () => {
         if(userState.loggedUser){
@@ -33,7 +40,7 @@ function LoggedUserPage(props){
     };
 
     const addCourseToStudyPlan = (course) => {
-        if(isCourseValid(course, studyPlan, setErrorMessage)){
+        if(isCourseValidToAdd(course, studyPlan, setErrorMessage)){
             setStudyPlan(oldStudyPlan => [...oldStudyPlan, course]);
         }else{
             setShowErrorModal(true);
@@ -42,13 +49,21 @@ function LoggedUserPage(props){
 
     const removeCoursesFromStudyPlan = (courses) => {
         courses.forEach(course => {
-            setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
+            if(isCourseValidToRemove(course, studyPlan, setErrorMessage)){
+                setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
+            }else{
+                setShowErrorModal(true);
+            }
         });
     };
 
     useEffect(() => {
         getStudyPlanAsync();
-      }, [userState.loggedUser.email]);
+    }, [userState.loggedUser.email]);
+
+    useEffect(() => {
+        setTotalCredits(studyPlan.map(course => course.credits).reduce((prev, current) => prev + current, 0));
+    }, [studyPlan]);
 
     return(
         <Row>
@@ -68,11 +83,12 @@ function LoggedUserPage(props){
                 <Row>
                     <Card>
                         <Card.Title>
+                            {studyPlan.length === 0? <FullTimeSwitch fulltimeStudyPlan = {fulltimeStudyPlan} setFullTimeStudyPlan = {setFullTimeStudyPlan}/> : ''}
                             <div className="d-flex justify-content-between align-items-start">
-                                Total credits
+                                {`Total credits (min : ${creditsBoundaries[fulltimeStudyPlan][0]} | max : ${creditsBoundaries[fulltimeStudyPlan][1]})`}
                                 {/*Consider the possibility to set bg="danger" in case the number of credits goes below or above two different thresholds according to full-time or part-time student*/}
-                                <Badge bg="primary" pill>
-                                    {studyPlan.map(course => course.credits).reduce((prev, current) => prev + current, 0)}
+                                <Badge bg={totalCredits < creditsBoundaries[fulltimeStudyPlan][0] || totalCredits > creditsBoundaries[fulltimeStudyPlan][1]? "danger" : "primary"} pill>
+                                    {totalCredits}
                                 </Badge>
                             </div>
                         </Card.Title>
@@ -140,7 +156,43 @@ function ErrorModal(props){
     );
 }
 
-function isCourseValid(course, studyPlan, setErrorMessage){
+function FullTimeSwitch(props){
+    const userState = useContext(UserContext);
+
+    return(
+        <ButtonGroup className="mb-2">
+            <ToggleButton
+            type="radio"
+            variant={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == true? "primary" : "light"}
+            name="fulltime-radio"
+            value={true}
+            checked={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == true}
+            onClick={() => {
+                props.setFullTimeStudyPlan(true);
+                /*added userState.loggedUser.fulltime = true because if the user has never created a study plan before all previous condition will always return false due to 'userState.loggedUser.fulltime !== null' condition*/
+                if(userState.loggedUser.fulltime === null)
+                    userState.loggedUser.fulltime = true;
+                }}>
+                Full time
+            </ToggleButton>
+            <ToggleButton
+            type="radio"
+            variant={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == false? "primary" : "light"}
+            name="parttime-radio"
+            value={false}
+            checked={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == false}
+            onClick={() => {
+                props.setFullTimeStudyPlan(false);
+                if(userState.loggedUser.fulltime === null)
+                    userState.loggedUser.fulltime = false;
+                }}>
+                Part time
+            </ToggleButton>
+        </ButtonGroup>
+    );
+}
+
+function isCourseValidToAdd(course, studyPlan, setErrorMessage){
     if(course === undefined){
         setErrorMessage('Please select one course to add first!');
         return false;
@@ -160,6 +212,15 @@ function isCourseValid(course, studyPlan, setErrorMessage){
     }
     if(course.enrolledStudents === course.maxStudents){
         setErrorMessage('Maximum number of enrolled students reached!');
+        return false;
+    }
+    return true;
+}
+
+function isCourseValidToRemove(course, studyPlan, setErrorMessage){
+    //Take into account the possibility to change the message and the way the control is performed in order to tell the user which course is preparatory for another course
+    if(studyPlan.some(c => c.preparatoryCourse === course.code)){
+        setErrorMessage(`Course ${course.code} can't be removed because it's a preparatory course for another course in the study plan. Remove it first!`);
         return false;
     }
     return true;

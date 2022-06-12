@@ -137,7 +137,7 @@ exports.getUser = (username, password) => {
                 if (!row){
                     resolve(false);
                }else{
-                    const user = {username: row.EMAIL, name: row.NAME, surname: row.SURNAME, fulltime: row.FULLTIME};
+                    const user = {username: row.EMAIL, name: row.NAME, surname: row.SURNAME, fulltime: row.FULLTIME == 1/*fulltime is stored as an INTEGER in sqlite so in this way I can convert the number into the matching boolean value*/};
                     if(row.PASSWORD === sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(password))){
                         resolve(user);
                     }else{
