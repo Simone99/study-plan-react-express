@@ -119,7 +119,7 @@ function LoggedUserPage(props){
                                     <Button onClick = {handleSaveChanges}>Save changes</Button>
                                 </Col>
                                 <Col md="auto">
-                                    <Button onClick = {() => console.log('Ehy! I want being implemented!')}>Drop changes</Button>
+                                    <Button onClick = {getStudyPlanAsync}>Drop changes</Button>
                                 </Col>
                             </Row>
                         </Card.Body>
