@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { Row, Col, Card, Dropdown, Button, Badge, Modal, ButtonGroup, ToggleButton } from "react-bootstrap";
-import { getStudyPlan } from '../API';
+import { getStudyPlan, deleteStudyPlan, addStudyPlan, updateFullTimeStudent } from '../API';
 import { CoursesList } from "./CoursesList";
 import { StudyPlanList } from "./StudyPlanList"
 import UserContext from '../Context/UserContext';
@@ -57,6 +57,17 @@ function LoggedUserPage(props){
         });
     };
 
+    const handleSaveChanges = async () => {
+        if(isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)){
+            await deleteStudyPlan();
+            await addStudyPlan(studyPlan);
+            await updateFullTimeStudent(fulltimeStudyPlan);
+        }else{
+            setErrorMessage('Number of credits must belong to min-max interval!');
+            setShowErrorModal(true);
+        }
+    };
+
     useEffect(() => {
         getStudyPlanAsync();
     }, [userState.loggedUser.email]);
@@ -87,7 +98,7 @@ function LoggedUserPage(props){
                             <div className="d-flex justify-content-between align-items-start">
                                 {`Total credits (min : ${creditsBoundaries[fulltimeStudyPlan][0]} | max : ${creditsBoundaries[fulltimeStudyPlan][1]})`}
                                 {/*Consider the possibility to set bg="danger" in case the number of credits goes below or above two different thresholds according to full-time or part-time student*/}
-                                <Badge bg={totalCredits < creditsBoundaries[fulltimeStudyPlan][0] || totalCredits > creditsBoundaries[fulltimeStudyPlan][1]? "danger" : "primary"} pill>
+                                <Badge bg={isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)? "primary" : "danger"} pill>
                                     {totalCredits}
                                 </Badge>
                             </div>
@@ -105,7 +116,7 @@ function LoggedUserPage(props){
                                     <Button onClick = {() => removeCoursesFromStudyPlan(selectedCoursesToRemove)}>Remove selected courses</Button>
                                 </Col>
                                 <Col md="auto">
-                                    <Button onClick = {() => console.log('Ehy! I want being implemented!')}>Save changes</Button>
+                                    <Button onClick = {handleSaveChanges}>Save changes</Button>
                                 </Col>
                                 <Col md="auto">
                                     <Button onClick = {() => console.log('Ehy! I want being implemented!')}>Drop changes</Button>
@@ -224,6 +235,10 @@ function isCourseValidToRemove(course, studyPlan, setErrorMessage){
         return false;
     }
     return true;
+}
+
+function isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan){
+    return totalCredits >= creditsBoundaries[fulltimeStudyPlan][0] && totalCredits <= creditsBoundaries[fulltimeStudyPlan][1];
 }
 
 export{LoggedUserPage};

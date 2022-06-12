@@ -69,7 +69,7 @@ exports.getStudyPlanCourses = (email) => {
     });
 };
 
-exports.addCourseToStudyPlan = (courseCode, email) => {
+const addCourseToStudyPlan = (courseCode, email) => {
     return new Promise((resolve, reject) => {
         const sql = "INSERT INTO STUDY_PLANS(COURSE_CODE, STUDENT_EMAIL) VALUES(?,?)";
         db.run(sql, [courseCode, email], function (err){
@@ -82,10 +82,29 @@ exports.addCourseToStudyPlan = (courseCode, email) => {
     });
 };
 
-exports.deleteCourseFromStudyPlan = (courseCode, email) => {
+/*exports.deleteCourseFromStudyPlan = (courseCode, email) => {
     return new Promise((resolve, reject) => {
         const sql = "DELETE FROM STUDY_PLANS WHERE COURSE_CODE = ? AND STUDENT_EMAIL = ?";
         db.run(sql, [courseCode, email], function (err){
+            if(err){
+                reject(err);
+            }else{
+                resolve(this.changes);
+            }
+        });
+    });
+};*/
+
+exports.addStudyPlan = async (courses, email) => {
+    for(let course of courses){
+        await addCourseToStudyPlan(course.code, email);
+    }
+};
+
+exports.deleteStudyPlan = (email) => {
+    return new Promise((resolve, reject) => {
+        const sql = "DELETE FROM STUDY_PLANS WHERE STUDENT_EMAIL = ?";
+        db.run(sql, [email], function (err){
             if(err){
                 reject(err);
             }else{
@@ -144,6 +163,19 @@ exports.getUser = (username, password) => {
                         resolve(false);
                     }
                }
+            }
+        });
+    });
+};
+
+exports.updateFullTimeStudent = (fulltime, email) => {
+    return new Promise((resolve, reject) => {
+        const sql = "UPDATE STUDENTS SET FULLTIME = ? WHERE EMAIL = ?";
+        db.run(sql, [fulltime, email], function(err){
+            if(err){
+                reject(err);
+            }else{
+                resolve(this.changes);
             }
         });
     });

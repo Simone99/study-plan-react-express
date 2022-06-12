@@ -136,7 +136,17 @@ def fill_db(cursor):
         ('01NYHOV', 's956325@studenti.polito.it'),
         ('03UEWOV', 's956325@studenti.polito.it'),
         ('01TYDOV', 's956325@studenti.polito.it'),
-        ('01SQJOV', 's462034@studenti.polito.it')
+        ('01SQJOV', 's462034@studenti.polito.it'),
+        ('04GSPOV', 's295316@studenti.polito.it'),
+        ('01URROV', 's295316@studenti.polito.it'),
+        ('01SQOOV', 's295316@studenti.polito.it'),
+        ('01SQLOV', 's123456@studenti.polito.it'),
+        ('02LSEOV', 's956325@studenti.polito.it'),
+        ('01TXYOV', 's956325@studenti.polito.it'),
+        ('01TXSOV', 's956325@studenti.polito.it'),
+        ('01SQJOV', 's956325@studenti.polito.it'),
+        ('01UDUOV', 's956325@studenti.polito.it'),
+        ('02LSEOV', 's462034@studenti.polito.it')
     ]
 
     cursor.executemany(courses_query, courses_list)

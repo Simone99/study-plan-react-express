@@ -100,7 +100,7 @@ app.get('/api/students/compatibleCourses', isLoggedIn, async (req, res) => {
   }
 });
 
-app.post('/api/students/courses', isLoggedIn, body('courseCode').isLength(7), async (req, res) => {
+/*app.post('/api/students/courses', isLoggedIn, body('courseCode').isLength(7), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
@@ -112,15 +112,53 @@ app.post('/api/students/courses', isLoggedIn, body('courseCode').isLength(7), as
     console.log(err);
     return res.status(503).end();
   }
-});
+});*/
 
-app.delete('/api/students/courses/:code', isLoggedIn, param('code').isLength(7), async (req, res) => {
+/*app.delete('/api/students/courses/:code', isLoggedIn, param('code').isLength(7), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
   }
   try{
     const result = await DAO.deleteCourseFromStudyPlan(req.params.code, req.user.email);
+    return res.status(204).end();
+  }catch(err){
+    console.log(err);
+    return res.status(503).end();
+  }
+});*/
+
+app.post('/api/students/courses', isLoggedIn, body().isArray(), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  try{
+    const result = await DAO.addStudyPlan(req.body, req.user.email);
+    return res.status(201).end();
+  }catch(err){
+    console.log(err);
+    return res.status(503).end();
+  }
+});
+
+app.put('/api/students', isLoggedIn, body('fulltime').isBoolean(), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  try{
+    const result = await DAO.updateFullTimeStudent(req.body.fulltime, req.user.email);
+    return res.status(200).end();
+  }catch(err){
+    console.log(err);
+    return res.status(503).end();
+  }
+});
+
+app.delete('/api/students/courses', isLoggedIn, async (req, res) => {
+  try{
+    const result = await DAO.deleteStudyPlan(req.user.email);
     return res.status(204).end();
   }catch(err){
     console.log(err);

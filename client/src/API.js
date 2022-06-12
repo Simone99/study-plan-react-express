@@ -24,6 +24,46 @@ const getStudyPlan = async () => {
   }
 };
 
+const addStudyPlan = async (courses) => {
+  const res = await fetch(SERVER_URL + '/api/students/courses', {
+    credentials: 'include',
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(courses)
+  });
+  if(!res.ok){
+    const errMessage = await res.json();
+    throw errMessage;
+  }
+  else return null;
+};
+
+const deleteStudyPlan = async () => {
+  const res = await fetch(SERVER_URL + '/api/students/courses', {
+    credentials: 'include',
+    method: 'DELETE'
+  });
+  if(!res.ok){
+    const errMessage = await res.json();
+    throw errMessage;
+  }
+  else return null;
+};
+
+const updateFullTimeStudent = async (fulltime) => {
+  const res = await fetch(SERVER_URL + '/api/students', {
+    credentials: 'include',
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({fulltime})
+  });
+  if(!res.ok){
+    const errMessage = await res.json();
+    throw errMessage;
+  }
+  else return null;
+};
+
 const logIn = async(credentials) => {
     const response = await fetch(SERVER_URL + '/api/login', {
         method: 'POST',
@@ -65,4 +105,4 @@ const logout = async() => {
 };
 
 
-export{getAllCourses, logIn, getUserInfo, logout, getStudyPlan};
+export{getAllCourses, logIn, getUserInfo, logout, getStudyPlan, deleteStudyPlan, addStudyPlan, updateFullTimeStudent};
