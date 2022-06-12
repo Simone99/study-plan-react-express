@@ -7,12 +7,14 @@ import { CoursesList } from './Components/CoursesList';
 import { CourseNavBar } from './Components/CourseNavBar';
 import { LoginForm } from './Components/LoginForm';
 import { LoggedUserPage } from './Components/LoggedUserPage'
+import { ToastNotification } from "./Components/ToastNotification";
 import {getAllCourses, getUserInfo} from './API';
 import UserContext from './Context/UserContext'
 
 function App() {
   const [courses, setCourses] = useState([]);
   const [loggedUser, setLoggedUser] = useState('');
+  const [toastData, setToastData] = useState({show : false, title : '', message : ''});
 
   const getCoursesAsync = async () => {
     try{
@@ -49,9 +51,9 @@ function App() {
       <Container fluid>
         <Router>
           <Routes>
-            <Route path="/" element = {<Layout/>}>
-              <Route index element={loggedUser? <LoggedUserPage courses = {courses}/> : <HomePage courses = {courses}/>}/>
-              <Route path="/login" element={<LoginForm/>}/>
+            <Route path="/" element = {<Layout toastData = {toastData} setToastData = {setToastData}/>}>
+              <Route index element={loggedUser? <LoggedUserPage courses = {courses} setToastData = {setToastData}/> : <HomePage courses = {courses}/>}/>
+              <Route path="/login" element={<LoginForm setToastData = {setToastData}/>}/>
             </Route>
           </Routes>
         </Router>
@@ -64,8 +66,9 @@ function Layout(props){
   return (
     <>
       <Row>
-        <CourseNavBar/>
+        <CourseNavBar setToastData = {props.setToastData}/>
       </Row>
+      <ToastNotification toastData = {props.toastData} setToastData = {props.setToastData}/>
       <Outlet/>
     </>
   );

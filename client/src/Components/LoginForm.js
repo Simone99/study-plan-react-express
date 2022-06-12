@@ -15,9 +15,11 @@ function LoginForm(props){
             try {
                 const user = await logIn({username:email, password});
                 userState.setLoggedUser(user);
+                props.setToastData({show : true, title : `Welcome ${user.name}!`, message : `Now you're ready to edit your study plan!`});
                 navigate('/');
             }catch(err) {
                 console.log(err);
+                props.setToastData({show : true, title : `Error!`, message : `Incorrect username and/or password.`});
             }    
         };
         event.preventDefault();

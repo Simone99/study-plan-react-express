@@ -62,6 +62,7 @@ function LoggedUserPage(props){
             await deleteStudyPlan();
             await addStudyPlan(studyPlan);
             await updateFullTimeStudent(fulltimeStudyPlan);
+            props.setToastData({show : true, title : 'Operation successfull', message : 'All changes saved!'});
         }else{
             setErrorMessage('Number of credits must belong to min-max interval!');
             setShowErrorModal(true);
@@ -97,7 +98,6 @@ function LoggedUserPage(props){
                             {studyPlan.length === 0? <FullTimeSwitch fulltimeStudyPlan = {fulltimeStudyPlan} setFullTimeStudyPlan = {setFullTimeStudyPlan}/> : ''}
                             <div className="d-flex justify-content-between align-items-start">
                                 {`Total credits (min : ${creditsBoundaries[fulltimeStudyPlan][0]} | max : ${creditsBoundaries[fulltimeStudyPlan][1]})`}
-                                {/*Consider the possibility to set bg="danger" in case the number of credits goes below or above two different thresholds according to full-time or part-time student*/}
                                 <Badge bg={isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)? "primary" : "danger"} pill>
                                     {totalCredits}
                                 </Badge>
@@ -119,7 +119,7 @@ function LoggedUserPage(props){
                                     <Button onClick = {handleSaveChanges}>Save changes</Button>
                                 </Col>
                                 <Col md="auto">
-                                    <Button onClick = {getStudyPlanAsync}>Drop changes</Button>
+                                    <Button onClick = {() => {getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
                                 </Col>
                             </Row>
                         </Card.Body>

@@ -18,6 +18,7 @@ function CourseNavBar(props){
                         if(userState.loggedUser){
                             const handleLogoutAsync = async() => {
                                 await logout();
+                                props.setToastData({show:true, title:`Goodbye ${userState.loggedUser.name}!`, message:'I hope to see you soon!'});
                                 userState.setLoggedUser('');
                                 navigate('/');
                             };
