@@ -13,7 +13,8 @@ function LoggedUserPage(props){
     const [selectedCoursesToRemove, setSelectedCoursesToRemove] = useState([]);
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime);
+    /*fulltime is stored as an INTEGER in sqlite so in this way I can convert the number into the matching boolean value*/
+    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime == 1);
 
     const creditsBoundaries = {
         true : [60, 80],
@@ -43,6 +44,7 @@ function LoggedUserPage(props){
         if(isCourseValidToAdd(course, studyPlan, setErrorMessage)){
             setStudyPlan(oldStudyPlan => [...oldStudyPlan, course]);
         }else{
+            console.log(userState.loggedUser.fulltime);
             setShowErrorModal(true);
         }
     };
@@ -69,9 +71,18 @@ function LoggedUserPage(props){
         }
     };
 
+    const handleDeleteStudyPlan = async () => {
+        await deleteStudyPlan();
+        await updateFullTimeStudent(null);
+        setStudyPlan([]);
+        setFullTimeStudyPlan(null);
+        //userState.loggedUser.fulltime = null;
+        props.setToastData({show : true, title : 'Operation successfull', message : 'Study plan deleted, create a new one!'});
+    };
+
     useEffect(() => {
         getStudyPlanAsync();
-    }, [userState.loggedUser.email]);
+    }, []);
 
     useEffect(() => {
         setTotalCredits(studyPlan.map(course => course.credits).reduce((prev, current) => prev + current, 0));
@@ -95,32 +106,37 @@ function LoggedUserPage(props){
                 <Row>
                     <Card>
                         <Card.Title>
-                            {studyPlan.length === 0? <FullTimeSwitch fulltimeStudyPlan = {fulltimeStudyPlan} setFullTimeStudyPlan = {setFullTimeStudyPlan}/> : ''}
-                            <div className="d-flex justify-content-between align-items-start">
-                                {`Total credits (min : ${creditsBoundaries[fulltimeStudyPlan][0]} | max : ${creditsBoundaries[fulltimeStudyPlan][1]})`}
-                                <Badge bg={isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)? "primary" : "danger"} pill>
-                                    {totalCredits}
-                                </Badge>
-                            </div>
+                            {
+                                fulltimeStudyPlan === null?
+                                <FullTimeSwitch fulltimeStudyPlan = {fulltimeStudyPlan} setFullTimeStudyPlan = {setFullTimeStudyPlan}/>
+                                :
+                                <div className="d-flex justify-content-between align-items-start">
+                                    {`Total credits (min : ${creditsBoundaries[fulltimeStudyPlan][0]} | max : ${creditsBoundaries[fulltimeStudyPlan][1]})`}
+                                    <Badge bg={isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)? "primary" : "danger"} pill>
+                                        {totalCredits}
+                                    </Badge>
+                                </div>
+                            }
                         </Card.Title>
                         <Card.Body>
                             <StudyPlanList studyPlan = {studyPlan} selectOrRemoveCourse = {selectOrRemoveCourse}/>
                             <Row className="justify-content-md-center">
-                                <Col md="auto">
-                                    <CoursesDropdown courses = {props.courses} setSelectedCourseToAdd = {setSelectedCourseToAdd}/>
-                                </Col>
-                                <Col md="auto">
-                                    <Button onClick = {() => addCourseToStudyPlan(selectedCourseToAdd)}>Add course</Button>
-                                </Col>
-                                <Col md="auto">
-                                    <Button onClick = {() => removeCoursesFromStudyPlan(selectedCoursesToRemove)}>Remove selected courses</Button>
-                                </Col>
-                                <Col md="auto">
-                                    <Button onClick = {handleSaveChanges}>Save changes</Button>
-                                </Col>
-                                <Col md="auto">
-                                    <Button onClick = {() => {getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
-                                </Col>
+                                {
+                                    fulltimeStudyPlan === null?
+                                    ''
+                                    : 
+                                    <EditButtons
+                                        courses = {props.courses}
+                                        setSelectedCourseToAdd = {setSelectedCourseToAdd}
+                                        addCourseToStudyPlan = {addCourseToStudyPlan}
+                                        removeCoursesFromStudyPlan = {removeCoursesFromStudyPlan}
+                                        selectedCourseToAdd = {selectedCourseToAdd}
+                                        selectedCoursesToRemove = {selectedCoursesToRemove}
+                                        handleSaveChanges = {handleSaveChanges}
+                                        getStudyPlanAsync = {getStudyPlanAsync}
+                                        setToastData = {props.setToastData}
+                                        handleDeleteStudyPlan = {handleDeleteStudyPlan}/>
+                                }
                             </Row>
                         </Card.Body>
                     </Card>
@@ -174,32 +190,57 @@ function FullTimeSwitch(props){
         <ButtonGroup className="mb-2">
             <ToggleButton
             type="radio"
-            variant={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == true? "primary" : "light"}
+            variant={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == true? "primary" : "light"}
             name="fulltime-radio"
             value={true}
-            checked={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == true}
+            checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == true}
             onClick={() => {
+                if(props.fulltimeStudyPlan === null)
+                    userState.loggedUser.fulltime = true;
                 props.setFullTimeStudyPlan(true);
                 /*added userState.loggedUser.fulltime = true because if the user has never created a study plan before all previous condition will always return false due to 'userState.loggedUser.fulltime !== null' condition*/
-                if(userState.loggedUser.fulltime === null)
-                    userState.loggedUser.fulltime = true;
                 }}>
                 Full time
             </ToggleButton>
             <ToggleButton
             type="radio"
-            variant={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == false? "primary" : "light"}
+            variant={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == false? "primary" : "light"}
             name="parttime-radio"
             value={false}
-            checked={userState.loggedUser.fulltime !== null && props.fulltimeStudyPlan == false}
+            checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == false}
             onClick={() => {
-                props.setFullTimeStudyPlan(false);
-                if(userState.loggedUser.fulltime === null)
+                if(props.fulltimeStudyPlan === null)
                     userState.loggedUser.fulltime = false;
+                props.setFullTimeStudyPlan(false);
                 }}>
                 Part time
             </ToggleButton>
         </ButtonGroup>
+    );
+}
+
+function EditButtons(props){
+    return(
+        <>
+            <Col md="auto">
+                <CoursesDropdown courses = {props.courses} setSelectedCourseToAdd = {props.setSelectedCourseToAdd}/>
+            </Col>
+            <Col md="auto">
+                <Button onClick = {() => props.addCourseToStudyPlan(props.selectedCourseToAdd)}>Add course</Button>
+            </Col>
+            <Col md="auto">
+                <Button onClick = {() => props.removeCoursesFromStudyPlan(props.selectedCoursesToRemove)}>Remove selected courses</Button>
+            </Col>
+            <Col md="auto">
+                <Button onClick = {props.handleSaveChanges}>Save changes</Button>
+            </Col>
+            <Col md="auto">
+                <Button onClick = {() => {props.getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
+            </Col>
+            <Col md="auto">
+                <Button onClick = {() => {props.handleDeleteStudyPlan()}}>Delete study plan</Button>
+            </Col>
+        </>
     );
 }
 

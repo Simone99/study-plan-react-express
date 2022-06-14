@@ -142,13 +142,15 @@ app.post('/api/students/courses', isLoggedIn, body().isArray(), async (req, res)
   }
 });
 
-app.put('/api/students', isLoggedIn, body('fulltime').isBoolean(), async (req, res) => {
+app.put('/api/students', isLoggedIn, body('fulltime').exists(), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
   }
   try{
     const result = await DAO.updateFullTimeStudent(req.body.fulltime, req.user.email);
+    //Updated user session in order to include the changes related to study plan category, so that refreshing the page leads to a consistent behavior
+    req.session.passport.user.fulltime = req.body.fulltime;
     return res.status(200).end();
   }catch(err){
     console.log(err);
