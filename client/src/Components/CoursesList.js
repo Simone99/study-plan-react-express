@@ -4,7 +4,7 @@ function CoursesList(props){
     return (
         <Table responsive bordered hover /*style={{color: 'white'}}*/>
             <CoursesListHeader/>
-            <CoursesListBody courses = {props.courses}/>
+            <CoursesListBody courses = {props.courses} incompatibleCourses = {props.incompatibleCourses}/>
         </Table>
     );
 }
@@ -12,13 +12,13 @@ function CoursesList(props){
 function CoursesListHeader(props){
     return (
         <thead>
-        <tr>
-        <th scope="col">Code</th>
-            <th scope="col">Name</th>
-            <th scope="col">Credits</th>
-            <th scope="col">Enrolled students</th>
-            <th scope="col">Maximum students number</th>
-        </tr>
+            <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Name</th>
+                <th scope="col">Credits</th>
+                <th scope="col">Enrolled students</th>
+                <th scope="col">Maximum students number</th>
+            </tr>
         </thead>    
     );
 }
@@ -26,14 +26,14 @@ function CoursesListHeader(props){
 function CoursesListBody(props){
     return (
         <tbody>
-            {props.courses.map(course => <CoursesListRow course = {course} key = {course.code}/>)}
+            {props.courses.map(course => <CoursesListRow course = {course} incompatibleCourses = {props.incompatibleCourses} key = {course.code}/>)}
         </tbody>
     );
 }
 
 function CoursesListRow(props){
     return (
-        <tr>
+        <tr style={props.incompatibleCourses && props.incompatibleCourses.some(c => c.code === props.course.code)? {backgroundColor: "LightCoral"} : {}}>
             <CourseListData course = {props.course}/>
             <CourseListAccordion course = {props.course}/>
         </tr>

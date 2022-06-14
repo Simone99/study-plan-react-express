@@ -12,7 +12,7 @@ function StudyPlanList(props){
 function StudyPlanListItem(props){
     const [checked, setChecked] = useState(false);
     return(
-        <ListGroup.Item as="li" className={checked? "d-flex justify-content-between align-items-start bg-light" : "d-flex justify-content-between align-items-start"} onClick={() => {props.selectOrRemoveCourse(props.course, checked); setChecked(prev => !prev)}}>
+        <ListGroup.Item as="li" style={checked? {backgroundColor: "lightblue"} : {}} className="d-flex justify-content-between align-items-start" onClick={() => {props.selectOrRemoveCourse(props.course, checked); setChecked(prev => !prev)}}>
             <div className="ms-2 me-auto">
                 <div className="fw-bold">{props.course.name}</div>
                 {props.course.code}

@@ -15,6 +15,7 @@ function LoggedUserPage(props){
     const [errorMessage, setErrorMessage] = useState('');
     /*fulltime is stored as an INTEGER in sqlite so in this way I can convert the number into the matching boolean value*/
     const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime == 1);
+    const [incompatibleCourses, setIncompatibleCourses] = useState([]);
 
     const creditsBoundaries = {
         true : [60, 80],
@@ -44,7 +45,6 @@ function LoggedUserPage(props){
         if(isCourseValidToAdd(course, studyPlan, setErrorMessage)){
             setStudyPlan(oldStudyPlan => [...oldStudyPlan, course]);
         }else{
-            console.log(userState.loggedUser.fulltime);
             setShowErrorModal(true);
         }
     };
@@ -53,6 +53,7 @@ function LoggedUserPage(props){
         courses.forEach(course => {
             if(isCourseValidToRemove(course, studyPlan, setErrorMessage)){
                 setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
+                setSelectedCoursesToRemove(oldList => oldList.filter(c => c.code !== course.code));
             }else{
                 setShowErrorModal(true);
             }
@@ -76,7 +77,6 @@ function LoggedUserPage(props){
         await updateFullTimeStudent(null);
         setStudyPlan([]);
         setFullTimeStudyPlan(null);
-        //userState.loggedUser.fulltime = null;
         props.setToastData({show : true, title : 'Operation successfull', message : 'Study plan deleted, create a new one!'});
     };
 
@@ -86,6 +86,7 @@ function LoggedUserPage(props){
 
     useEffect(() => {
         setTotalCredits(studyPlan.map(course => course.credits).reduce((prev, current) => prev + current, 0));
+        setIncompatibleCourses(fillIncompatibleCoursesList(studyPlan, props.courses));
     }, [studyPlan]);
 
     return(
@@ -95,7 +96,7 @@ function LoggedUserPage(props){
                     <h1>Courses available</h1>
                 </Row>
                 <Row>
-                    <CoursesList courses = {props.courses}/>
+                    <CoursesList courses = {props.courses} incompatibleCourses = {incompatibleCourses}/>
                 </Row>
             </Col>
             <Col xs={6}>
@@ -135,7 +136,8 @@ function LoggedUserPage(props){
                                         handleSaveChanges = {handleSaveChanges}
                                         getStudyPlanAsync = {getStudyPlanAsync}
                                         setToastData = {props.setToastData}
-                                        handleDeleteStudyPlan = {handleDeleteStudyPlan}/>
+                                        handleDeleteStudyPlan = {handleDeleteStudyPlan}
+                                    />
                                 }
                             </Row>
                         </Card.Body>
@@ -280,6 +282,16 @@ function isCourseValidToRemove(course, studyPlan, setErrorMessage){
 
 function isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan){
     return totalCredits >= creditsBoundaries[fulltimeStudyPlan][0] && totalCredits <= creditsBoundaries[fulltimeStudyPlan][1];
+}
+
+function fillIncompatibleCoursesList(studyPlan, courses){
+    const tmp = [];
+    for(let course of courses){
+        if(!isCourseValidToAdd(course, studyPlan, (placeholder) => placeholder)){
+            tmp.push(course);
+        }
+    }
+    return tmp;
 }
 
 export{LoggedUserPage};
