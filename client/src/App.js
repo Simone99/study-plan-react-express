@@ -31,6 +31,7 @@ function App() {
     }catch(err){
       console.log(err);
     }
+    return;
   };
 
   useEffect(() => {
@@ -52,7 +53,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element = {<Layout toastData = {toastData} setToastData = {setToastData}/>}>
-              <Route index element={loggedUser? <LoggedUserPage courses = {courses} setToastData = {setToastData}/> : <HomePage courses = {courses}/>}/>
+              <Route index element={loggedUser? <LoggedUserPage courses = {courses} setToastData = {setToastData} getCoursesAsync = {getCoursesAsync}/> : <HomePage courses = {courses}/>}/>
               <Route path="/login" element={<LoginForm setToastData = {setToastData}/>}/>
             </Route>
           </Routes>

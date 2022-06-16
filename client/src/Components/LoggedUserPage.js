@@ -14,7 +14,7 @@ function LoggedUserPage(props){
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     /*fulltime is stored as an INTEGER in sqlite so in this way I can convert the number into the matching boolean value*/
-    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime == 1);
+    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime === 1);
 
     const creditsBoundaries = {
         true : [60, 80],
@@ -64,6 +64,7 @@ function LoggedUserPage(props){
             await deleteStudyPlan();
             await addStudyPlan(studyPlan);
             await updateFullTimeStudent(fulltimeStudyPlan);
+            await props.getCoursesAsync();
             props.setToastData({show : true, title : 'Operation successfull', message : 'All changes saved!'});
         }else{
             setErrorMessage('Number of credits must belong to min-max interval!');
@@ -74,6 +75,7 @@ function LoggedUserPage(props){
     const handleDeleteStudyPlan = async () => {
         await deleteStudyPlan();
         await updateFullTimeStudent(null);
+        await props.getCoursesAsync();
         setStudyPlan([]);
         setFullTimeStudyPlan(null);
         props.setToastData({show : true, title : 'Operation successfull', message : 'Study plan deleted, create a new one!'});
@@ -190,10 +192,10 @@ function FullTimeSwitch(props){
         <ButtonGroup className="mb-2">
             <ToggleButton
             type="radio"
-            variant={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == true? "primary" : "light"}
+            variant={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan === true? "primary" : "light"}
             name="fulltime-radio"
             value={true}
-            checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == true}
+            checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan === true}
             onClick={() => {
                 if(props.fulltimeStudyPlan === null)
                     userState.loggedUser.fulltime = true;
@@ -204,10 +206,10 @@ function FullTimeSwitch(props){
             </ToggleButton>
             <ToggleButton
             type="radio"
-            variant={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == false? "primary" : "light"}
+            variant={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan === false? "primary" : "light"}
             name="parttime-radio"
             value={false}
-            checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan == false}
+            checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan === false}
             onClick={() => {
                 if(props.fulltimeStudyPlan === null)
                     userState.loggedUser.fulltime = false;
