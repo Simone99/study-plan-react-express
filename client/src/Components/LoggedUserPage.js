@@ -237,10 +237,10 @@ function EditButtons(props){
                 <Button onClick = {props.handleSaveChanges}>Save changes</Button>
             </Col>
             <Col md="auto">
-                <Button onClick = {() => {props.getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
+                <Button variant="warning" onClick = {() => {props.getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
             </Col>
             <Col md="auto">
-                <Button onClick = {() => {props.handleDeleteStudyPlan()}}>Delete study plan</Button>
+                <Button variant="danger" onClick = {() => {props.handleDeleteStudyPlan()}}>Delete study plan</Button>
             </Col>
         </>
     );

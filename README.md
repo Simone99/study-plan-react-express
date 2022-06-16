@@ -1,11 +1,10 @@
-# Exam #12345: "Exam Title"
+# Exam #1: "StudyPlan"
 ## Student: s295316 Zanella Simone 
 
 ## React Client Application Routes
 
-- Route `/`: page content and purpose
-- Route `/something/:param`: page content and purpose, param specification
-- ...
+- Route `/`: shows the user home page and the not-logged user home page.
+- Route `/login`: shows the login form, in order to let the user entering his/her credentials.
 
 ## API Server
 
@@ -117,28 +116,6 @@ Sample response body:
 Error responses: `500 Internal server error`
 
 HTTP Method: GET \
-URL: `/api/courses/:code`\
-Description: Retrieve course stored in DB according to the code specified in the URL\
-Sample request body: _None_\
-Sample response: `200 OK`\
-Sample response body:
-
-```
-{
-    "code": "01OTWOV",
-    "name": "Computer network technologies and services",
-    "credits": 6,
-    "maxStudents": 3,
-    "incompatibleWith": [
-        "02KPNOV"
-    ],
-    "preparatoryCourse": null
-}
-```
-
-Error responses: `500 Internal Server Error`, `422 Unprocessable entity`, `404 Not found`
-
-HTTP Method: GET \
 URL: `/api/students/courses`\
 Description: Retrieve courses stored in DB according to the user logged\
 Sample request body: _None_\
@@ -199,14 +176,12 @@ Sample response body:
 ]
 ```
 
-Error responses: `500 Internal Server Error`
+Error responses: `500 Internal Server Error`, `401 Not authenticated`
 
-HTTP Method: GET \
-URL: `/api/students/compatibleCourses`\
-Description: Retrieve courses compatible with the current study plan of a student logged in\
-Sample request body: _None_\
-Sample response: `200 OK`\
-Sample response body:
+HTTP Method: POST \
+URL: `/api/students/courses` \
+Description: Add logged user new study plan \
+Sample request body:
 
 ```
 [
@@ -262,28 +237,30 @@ Sample response body:
 ]
 ```
 
-Error responses: `500 Internal Server Error`
+Sample response: `201 Created` \
+Sample response body: _None_ \
+Error responses: `503 Service unavailable`, `422 Unprocessable entity`, `401 Not authenticated`
 
-HTTP Method: POST \
-URL: `/api/students/courses` \
-Description: Add a new course to the study plan \
+HTTP Method: PUT \
+URL: `/api/students`\
+Description: Edit logged user study plan category\
 Sample request body:
 
 ```
-{courseCode:'04GSPOV'}
+{fulltime : true}
 ```
 
-Sample response: `201 Created` \
+Sample response: `200 OK` \
 Sample response body: _None_ \
-Error responses: `503 Service unavailable`
+Error responses: `503 Service Unavailable`, `422 Unprocessable entity`, `401 Not authenticated`
 
 HTTP Method: DELETE \
-URL: `/api/students/courses/:code`\
-Description: Delete a course from student study plan\
+URL: `/api/students/courses`\
+Description: Delete logged user study plan\
 Sample request body: _None_\
 Sample response: `204 No Content`\
 Sample response body: _None_\
-Error responses: `503 Service Unavailable`
+Error responses: `503 Service Unavailable`, `401 Not authenticated`
 
 HTTP Method: POST \
 URL: `/api/login`\
@@ -322,17 +299,56 @@ Error responses: `500 Internal Server Error`, `401 Not authenticated`
 
 ## Database Tables
 
-- Table `users` - contains xx yy zz
-- Table `something` - contains ww qq ss
-- ...
+Table `COURSES`
+|          CODE          |     NAME     | CREDITS          | MAX_STUDENTS | ENROLLED_STUDENTS | DEPENDENCY |
+|:----------------------:|:------------:|------------------|--------------|-------------------|------------|
+| VARCHAR(7) PRIMARY KEY | VARCHAR(100) | INTEGER NOT NULL | INTEGER      | INTEGER DEFAULT 0 | VARCHAR(7) |
+
+Table `INCOMPATIBILITIES`
+|       COURSE_CODE      | INCOMPATIBLE_COURSE_CODE |
+|:----------------------:|:------------------------:|
+| VARCHAR(7) PRIMARY KEY | VARCHAR(7) PRIMARY KEY   |
+
+Table `STUDENTS`
+|          EMAIL          |         NAME         |        SURNAME       |       PASSWORD       | FULLTIME |
+|:-----------------------:|:--------------------:|:--------------------:|:--------------------:|:--------:|
+| VARCHAR(50) PRIMARY KEY | VARCHAR(50) NOT NULL | VARCHAR(50) NOT NULL | VARCHAR(64) NOT NULL |  BOOLEAN |
+
+Table `STUDY_PLANS`
+|       COURSE_CODE      |      STUDENT_EMAIL      |
+|:----------------------:|:-----------------------:|
+| VARCHAR(7) PRIMARY KEY | VARCHAR(50) PRIMARY KEY |
+
+Trigger `INCREASE_ENROLLED_STUDENTS`
+```
+CREATE TRIGGER IF NOT EXISTS INCREASE_ENROLLED_STUDENTS
+AFTER INSERT ON STUDY_PLANS
+BEGIN
+UPDATE COURSES
+SET ENROLLED_STUDENTS = ENROLLED_STUDENTS + 1
+WHERE CODE = NEW.COURSE_CODE;
+END;
+```
+
+Trigger `DECREASE_ENROLLED_STUDENTS`
+```
+CREATE TRIGGER IF NOT EXISTS DECREASE_ENROLLED_STUDENTS
+AFTER DELETE ON STUDY_PLANS
+BEGIN
+UPDATE COURSES
+SET ENROLLED_STUDENTS = ENROLLED_STUDENTS - 1
+WHERE CODE = OLD.COURSE_CODE;
+END;
+```
 
 ## Main React Components
 
-- `ListOfSomething` (in `List.js`): component purpose and main functionality
-- `GreatButton` (in `GreatButton.js`): component purpose and main functionality
-- ...
-
-(only _main_ components, minor ones may be skipped)
+- `LoggedUserPage` (in `LoggedUserPage.js`): this component has to render and handle the logged user home page. It renders the study plan with all the functionalities like adding a new course to the study plan, delete courses inside the study plan, create a new study plan, delete the existent one, drop all changes and so on.
+- `CourseNavBar` (in `CourseNavBar.js`): it represents the top navigation bar where the logout functionality is implemented.
+- `CoursesList` (in `CoursesList.js`): it renders a table containing all the information related to all the courses available. Given a logged user, so a study plan, it marks differently all the courses that can't be added in the current study plan.
+- `LoginForm` (in `LoginForm.js`): it renders a form to collect user credential in order to perform the login implemented inside the component.
+- `StudyPlanList` (in `StudyPlanList.js`): it renders all the needed information about courses inside the current study plan and list them. It marks as selected the courses that have been selected by the user in order to delete them from the study plan.
+- `ToastNotification` (in `ToastNotification.js`): minor component which renders a toast notification warning the user on different events happening on the web page.
 
 ## Screenshot
 
@@ -340,5 +356,8 @@ Error responses: `500 Internal Server Error`, `401 Not authenticated`
 
 ## Users Credentials
 
-- username, password (plus any other requested info)
-- username, password (plus any other requested info)
+- s295316@studenti.polito.it, password
+- s123456@studenti.polito.it, password
+- s956325@studenti.polito.it, password
+- s462034@studenti.polito.it, password
+- s254991@studenti.polito.it, password

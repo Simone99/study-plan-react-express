@@ -4,7 +4,7 @@ const express = require('express');
 const morgan = require('morgan');
 const DAO = require('./DAO');
 const cors = require('cors');
-const {param, body, validationResult} = require('express-validator');
+const {body, validationResult} = require('express-validator');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const session = require('express-session');
@@ -62,37 +62,9 @@ app.get('/api/courses', async (req, res) => {
   }
 });
 
-app.get('/api/courses/:code', param('code').isLength(7), async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-  try{
-    const result = await DAO.getCourseByCode(req.params.code);
-    if(result.length === 0){
-      return res.status(404).end();
-    }else{
-      return res.status(200).json(result[0]);
-    }
-  }catch(err){
-    console.log(err);
-    return res.status(500).end();
-  }
-});
-
 app.get('/api/students/courses', isLoggedIn, async (req, res) => {
   try{
     const result = await DAO.getStudyPlanCourses(req.user.email);
-    return res.status(200).json(result);
-  }catch(err){
-    console.log(err);
-    return res.status(500).end();
-  }
-});
-
-app.get('/api/students/compatibleCourses', isLoggedIn, async (req, res) => {
-  try{
-    const result = await DAO.getCompatibleCourses(req.user.email);
     return res.status(200).json(result);
   }catch(err){
     console.log(err);
