@@ -15,7 +15,6 @@ function LoggedUserPage(props){
     const [errorMessage, setErrorMessage] = useState('');
     /*fulltime is stored as an INTEGER in sqlite so in this way I can convert the number into the matching boolean value*/
     const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime == 1);
-    const [incompatibleCourses, setIncompatibleCourses] = useState([]);
 
     const creditsBoundaries = {
         true : [60, 80],
@@ -86,7 +85,6 @@ function LoggedUserPage(props){
 
     useEffect(() => {
         setTotalCredits(studyPlan.map(course => course.credits).reduce((prev, current) => prev + current, 0));
-        setIncompatibleCourses(fillIncompatibleCoursesList(studyPlan, props.courses));
     }, [studyPlan]);
 
     return(
@@ -96,7 +94,7 @@ function LoggedUserPage(props){
                     <h1>Courses available</h1>
                 </Row>
                 <Row>
-                    <CoursesList courses = {props.courses} incompatibleCourses = {incompatibleCourses}/>
+                    <CoursesList courses = {props.courses} studyPlan = {studyPlan}/>
                 </Row>
             </Col>
             <Col xs={6}>
@@ -260,9 +258,19 @@ function isCourseValidToAdd(course, studyPlan, setErrorMessage){
         return false;
     }
     //Take into account the possibility to change the message and the way the control is performed in order to tell the user which course is already in the study plan that is incompatible with the one the student wants to add
-    if(course.incompatibleWith.length !== 0 && course.incompatibleWith.some(code => studyPlan.some(studyPlanCourse => studyPlanCourse.code === code))){
+    /*if(course.incompatibleWith.length !== 0 && course.incompatibleWith.some(code => studyPlan.some(studyPlanCourse => studyPlanCourse.code === code))){
         setErrorMessage(`An incompatible course with ${course.code} has been found in your study plan. Remove it to continue!`);
         return false;
+    }*/
+    if(course.incompatibleWith.length !== 0){
+        for(let incompatibleCourseCode of course.incompatibleWith){
+            for(let studyPlanCourse of studyPlan){
+                if(studyPlanCourse.code === incompatibleCourseCode){
+                    setErrorMessage(`${incompatibleCourseCode} is incompatible with ${course.code} in your study plan. Remove it to continue!`);
+                    return false;
+                }
+            }
+        }
     }
     if(course.enrolledStudents === course.maxStudents){
         setErrorMessage('Maximum number of enrolled students reached!');
@@ -273,9 +281,15 @@ function isCourseValidToAdd(course, studyPlan, setErrorMessage){
 
 function isCourseValidToRemove(course, studyPlan, setErrorMessage){
     //Take into account the possibility to change the message and the way the control is performed in order to tell the user which course is preparatory for another course
-    if(studyPlan.some(c => c.preparatoryCourse === course.code)){
+    /*if(studyPlan.some(c => c.preparatoryCourse === course.code)){
         setErrorMessage(`Course ${course.code} can't be removed because it's a preparatory course for another course in the study plan. Remove it first!`);
         return false;
+    }*/
+    for(let studyPlanCourse of studyPlan){
+        if(studyPlanCourse.preparatoryCourse === course.code){
+            setErrorMessage(`Course ${course.code} can't be removed because it's the preparatory course of ${studyPlanCourse.code}. Remove it first!`);
+            return false;
+        }
     }
     return true;
 }
@@ -284,14 +298,4 @@ function isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan){
     return totalCredits >= creditsBoundaries[fulltimeStudyPlan][0] && totalCredits <= creditsBoundaries[fulltimeStudyPlan][1];
 }
 
-function fillIncompatibleCoursesList(studyPlan, courses){
-    const tmp = [];
-    for(let course of courses){
-        if(!isCourseValidToAdd(course, studyPlan, (placeholder) => placeholder)){
-            tmp.push(course);
-        }
-    }
-    return tmp;
-}
-
-export{LoggedUserPage};
+export{LoggedUserPage, isCourseValidToAdd};

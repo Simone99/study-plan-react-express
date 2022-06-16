@@ -1,10 +1,12 @@
-import { Accordion, Table } from 'react-bootstrap'
+import { useEffect, useState } from 'react';
+import { Accordion, OverlayTrigger, Table, Popover } from 'react-bootstrap'
+import { isCourseValidToAdd } from "./LoggedUserPage";
 
 function CoursesList(props){
     return (
         <Table responsive bordered hover /*style={{color: 'white'}}*/>
             <CoursesListHeader/>
-            <CoursesListBody courses = {props.courses} incompatibleCourses = {props.incompatibleCourses}/>
+            <CoursesListBody courses = {props.courses} studyPlan = {props.studyPlan}/>
         </Table>
     );
 }
@@ -26,18 +28,44 @@ function CoursesListHeader(props){
 function CoursesListBody(props){
     return (
         <tbody>
-            {props.courses.map(course => <CoursesListRow course = {course} incompatibleCourses = {props.incompatibleCourses} key = {course.code}/>)}
+            {props.courses.map(course => <CoursesListRow course = {course} studyPlan = {props.studyPlan} key = {course.code}/>)}
         </tbody>
     );
 }
 
 function CoursesListRow(props){
+    const [overlayMessage, setOverlayMessage] = useState('');
+    const [valid, setValid] = useState(false);
+
+    useEffect(() => {
+        if(props.studyPlan !== undefined){
+            setValid(isCourseValidToAdd(props.course, props.studyPlan, (message) => setOverlayMessage(message)));
+        }else{
+            setValid(true);
+        }
+    }, [props.studyPlan]);
+
     return (
-        <tr style={props.incompatibleCourses && props.incompatibleCourses.some(c => c.code === props.course.code)? {backgroundColor: "LightCoral"} : {}}>
-            <CourseListData course = {props.course}/>
-            <CourseListAccordion course = {props.course}/>
-        </tr>
-    );
+            valid?
+            <tr>
+                <CourseListData course = {props.course}/>
+                <CourseListAccordion course = {props.course}/>
+            </tr>
+            :
+            <OverlayTrigger trigger="click" placement="top" overlay={
+                <Popover id="popover-basic">
+                    <Popover.Header as="h3">Error!</Popover.Header>
+                    <Popover.Body>
+                        {overlayMessage}
+                    </Popover.Body>
+                </Popover>
+            }>
+                <tr style={{backgroundColor: "LightCoral"}}>
+                    <CourseListData course = {props.course}/>
+                    <CourseListAccordion course = {props.course}/>
+                </tr>
+            </OverlayTrigger>
+        );
 }
 
 function CourseListData(props){
