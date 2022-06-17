@@ -62,8 +62,8 @@ function LoggedUserPage(props){
     const handleSaveChanges = async () => {
         if(isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)){
             await deleteStudyPlan();
-            await addStudyPlan(studyPlan);
             await updateFullTimeStudent(fulltimeStudyPlan);
+            await addStudyPlan(studyPlan);
             await props.getCoursesAsync();
             props.setToastData({show : true, title : 'Operation successfull', message : 'All changes saved!'});
         }else{

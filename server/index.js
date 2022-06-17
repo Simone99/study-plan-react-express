@@ -51,6 +51,53 @@ const isLoggedIn = (req, res, next) => {
   return res.status(400).json({message : "not authenticated"});
 }
 
+const validateStudyPlan = async (req, res, next) => {
+  const creditsBoundaries = {
+    true : [60, 80],
+    false : [20, 40]
+  };
+  if(body().isArray()){
+    if(req.body.some(c => c === undefined)){
+      return res.status(400).end();
+    }
+    //Check for duplicated courses
+    if(req.body.some(c => {
+      let counter = 0;
+      for(let course of req.body){
+        if(course.code === c.code){
+          counter++;
+        }
+      }
+      if(counter >= 2){
+        return true;
+      }
+      return false;
+    })){
+      return res.status(400).end();
+    }
+    //Check if courses have the number of enrolled students equal to the maximum number
+    const allCourses = await DAO.getAllCourses();
+    if(req.body.some(c => allCourses.some(originalCourse => c.code === originalCourse.code && originalCourse.enrolledStudents === originalCourse.maxStudents))){
+      return res.status(400).end();
+    }
+    //Check total credits boundaries according to the logged user
+    const totalCredits = req.body.map(course => course.credits).reduce((prev, current) => prev + current, 0);
+    if(totalCredits < creditsBoundaries[req.session.passport.user.fulltime][0] || totalCredits > creditsBoundaries[req.session.passport.user.fulltime][1]){
+      return res.status(400).end();
+    }
+    //Check if all courses have their preparatory course in the study plan
+    if(req.body.some(c => c.preparatoryCourse && req.body.every(studyPlanCourse => c.code !== studyPlanCourse.code && studyPlanCourse.code !== c.preparatoryCourse))){
+      return res.status(400).end();
+    }
+    //Check if no incompatible course with another one is in the plan
+    if(req.body.some(c => c.incompatibleWith.length !== 0 && c.incompatibleWith.some(incompatibleCourseCode => req.body.some(studyPlanCourse => incompatibleCourseCode === studyPlanCourse.code)))){
+      return res.status(400).end();
+    }
+    return next();
+  }
+  return res.status(400).end();
+}
+
 
 app.get('/api/courses', async (req, res) => {
   try{
@@ -72,7 +119,7 @@ app.get('/api/students/courses', isLoggedIn, async (req, res) => {
   }
 });
 
-app.post('/api/students/courses', isLoggedIn, body().isArray(), async (req, res) => {
+app.post('/api/students/courses', isLoggedIn, validateStudyPlan, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
@@ -90,6 +137,9 @@ app.put('/api/students', isLoggedIn, body('fulltime').exists(), async (req, res)
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
+  }
+  if(req.body.fulltime !== null && req.body.fulltime !== true && req.body.fulltime !== false){
+    return res.status(422).end();
   }
   try{
     const result = await DAO.updateFullTimeStudent(req.body.fulltime, req.user.email);
