@@ -49,14 +49,19 @@ function LoggedUserPage(props){
     };
 
     const removeCoursesFromStudyPlan = (courses) => {
-        courses.forEach(course => {
-            if(isCourseValidToRemove(course, studyPlan, setErrorMessage)){
-                setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
-                setSelectedCoursesToRemove(oldList => oldList.filter(c => c.code !== course.code));
-            }else{
-                setShowErrorModal(true);
-            }
-        });
+        if(courses.length !== 0){
+            courses.forEach(course => {
+                if(isCourseValidToRemove(course, studyPlan, setErrorMessage)){
+                    setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
+                    setSelectedCoursesToRemove(oldList => oldList.filter(c => c.code !== course.code));
+                }else{
+                    setShowErrorModal(true);
+                }
+            });    
+        }else{
+            setErrorMessage('Please, select at least one course to remove in the study plan!');
+            setShowErrorModal(true);
+        }
     };
 
     const handleSaveChanges = async () => {
@@ -107,6 +112,7 @@ function LoggedUserPage(props){
                 <Row>
                     <Card>
                         <Card.Title>
+                        &nbsp;
                             {
                                 fulltimeStudyPlan === null?
                                 <FullTimeSwitch fulltimeStudyPlan = {fulltimeStudyPlan} setFullTimeStudyPlan = {setFullTimeStudyPlan}/>
@@ -121,25 +127,23 @@ function LoggedUserPage(props){
                         </Card.Title>
                         <Card.Body>
                             <StudyPlanList studyPlan = {studyPlan} selectOrRemoveCourse = {selectOrRemoveCourse}/>
-                            <Row className="justify-content-md-center">
-                                {
-                                    fulltimeStudyPlan === null?
-                                    ''
-                                    : 
-                                    <EditButtons
-                                        courses = {props.courses}
-                                        setSelectedCourseToAdd = {setSelectedCourseToAdd}
-                                        addCourseToStudyPlan = {addCourseToStudyPlan}
-                                        removeCoursesFromStudyPlan = {removeCoursesFromStudyPlan}
-                                        selectedCourseToAdd = {selectedCourseToAdd}
-                                        selectedCoursesToRemove = {selectedCoursesToRemove}
-                                        handleSaveChanges = {handleSaveChanges}
-                                        getStudyPlanAsync = {getStudyPlanAsync}
-                                        setToastData = {props.setToastData}
-                                        handleDeleteStudyPlan = {handleDeleteStudyPlan}
-                                    />
-                                }
-                            </Row>
+                            {
+                                fulltimeStudyPlan === null?
+                                ''
+                                : 
+                                <EditButtons
+                                    courses = {props.courses}
+                                    setSelectedCourseToAdd = {setSelectedCourseToAdd}
+                                    addCourseToStudyPlan = {addCourseToStudyPlan}
+                                    removeCoursesFromStudyPlan = {removeCoursesFromStudyPlan}
+                                    selectedCourseToAdd = {selectedCourseToAdd}
+                                    selectedCoursesToRemove = {selectedCoursesToRemove}
+                                    handleSaveChanges = {handleSaveChanges}
+                                    getStudyPlanAsync = {getStudyPlanAsync}
+                                    setToastData = {props.setToastData}
+                                    handleDeleteStudyPlan = {handleDeleteStudyPlan}
+                                />
+                            }
                         </Card.Body>
                     </Card>
                 </Row>
@@ -224,24 +228,33 @@ function FullTimeSwitch(props){
 function EditButtons(props){
     return(
         <>
-            <Col md="auto">
-                <CoursesDropdown courses = {props.courses} setSelectedCourseToAdd = {props.setSelectedCourseToAdd}/>
-            </Col>
-            <Col md="auto">
-                <Button onClick = {() => props.addCourseToStudyPlan(props.selectedCourseToAdd)}>Add course</Button>
-            </Col>
-            <Col md="auto">
-                <Button onClick = {() => props.removeCoursesFromStudyPlan(props.selectedCoursesToRemove)}>Remove selected courses</Button>
-            </Col>
-            <Col md="auto">
-                <Button onClick = {props.handleSaveChanges}>Save changes</Button>
-            </Col>
-            <Col md="auto">
-                <Button variant="warning" onClick = {() => {props.getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
-            </Col>
-            <Col md="auto">
-                <Button variant="danger" onClick = {() => {props.handleDeleteStudyPlan()}}>Delete study plan</Button>
-            </Col>
+            &nbsp;
+            <Row className="justify-content-md-center">
+                <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
+                    <CoursesDropdown courses = {props.courses} setSelectedCourseToAdd = {props.setSelectedCourseToAdd}/>
+                </Col>
+                <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
+                    <Button onClick = {() => props.addCourseToStudyPlan(props.selectedCourseToAdd)}>Add course</Button>
+                </Col>
+            </Row>
+            &nbsp;
+            <Row className="justify-content-md-center">
+                <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
+                    <Button onClick = {props.handleSaveChanges}>Save changes</Button>
+                </Col>
+                <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
+                    <Button variant="warning" onClick = {() => {props.getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
+                </Col>
+            </Row>
+            &nbsp;
+            <Row className="justify-content-md-center">
+                <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
+                    <Button onClick = {() => props.removeCoursesFromStudyPlan(props.selectedCoursesToRemove)}>Remove selected courses</Button>
+                </Col>
+                <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
+                    <Button variant="danger" onClick = {() => {props.handleDeleteStudyPlan()}}>Delete study plan</Button>
+                </Col>
+            </Row>
         </>
     );
 }
