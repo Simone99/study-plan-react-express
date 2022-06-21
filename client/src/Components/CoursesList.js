@@ -52,7 +52,7 @@ function CoursesListRow(props){
                 <CourseListAccordion course = {props.course}/>
             </tr>
             :
-            <OverlayTrigger trigger="click" placement="top" overlay={
+            <OverlayTrigger trigger="hover" placement="top" overlay={
                 <Popover id="popover-basic">
                     <Popover.Header as="h3">Error!</Popover.Header>
                     <Popover.Body>
