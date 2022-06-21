@@ -51,7 +51,7 @@ function LoggedUserPage(props){
     const removeCoursesFromStudyPlan = (courses) => {
         if(courses.length !== 0){
             courses.forEach(course => {
-                if(isCourseValidToRemove(course, studyPlan, setErrorMessage)){
+                if(isCourseValidToRemove(course, studyPlan, courses, setErrorMessage)){
                     setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
                     setSelectedCoursesToRemove(oldList => oldList.filter(c => c.code !== course.code));
                 }else{
@@ -294,14 +294,15 @@ function isCourseValidToAdd(course, studyPlan, setErrorMessage){
     return true;
 }
 
-function isCourseValidToRemove(course, studyPlan, setErrorMessage){
+function isCourseValidToRemove(course, studyPlan, courseListToRemove, setErrorMessage){
     //Take into account the possibility to change the message and the way the control is performed in order to tell the user which course is preparatory for another course
     /*if(studyPlan.some(c => c.preparatoryCourse === course.code)){
         setErrorMessage(`Course ${course.code} can't be removed because it's a preparatory course for another course in the study plan. Remove it first!`);
         return false;
     }*/
     for(let studyPlanCourse of studyPlan){
-        if(studyPlanCourse.preparatoryCourse === course.code){
+        //Remove a course only if it is not the preparatory course of another course in the study plan or the course it's the preparatory course of has been selected to be removed
+        if(studyPlanCourse.preparatoryCourse === course.code && courseListToRemove.every(c => c.code !== studyPlanCourse.code)){
             setErrorMessage(`Course ${course.code} can't be removed because it's the preparatory course of ${studyPlanCourse.code}. Remove it first!`);
             return false;
         }
