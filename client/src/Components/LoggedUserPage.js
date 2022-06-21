@@ -66,11 +66,15 @@ function LoggedUserPage(props){
 
     const handleSaveChanges = async () => {
         if(isStudyPlanValid(totalCredits, creditsBoundaries, fulltimeStudyPlan)){
-            await deleteStudyPlan();
-            await updateFullTimeStudent(fulltimeStudyPlan);
-            await addStudyPlan(studyPlan);
-            await props.getCoursesAsync();
-            props.setToastData({show : true, title : 'Operation successfull', message : 'All changes saved!'});
+            try{
+                await deleteStudyPlan();
+                await updateFullTimeStudent(fulltimeStudyPlan);
+                await addStudyPlan(studyPlan);
+                await props.getCoursesAsync();
+                props.setToastData({show : true, title : 'Operation successfull', message : 'All changes saved!'});    
+            }catch(err){
+                props.setToastData({show : true, title : 'Operation failed!', message : `${err}`});
+            }
         }else{
             setErrorMessage('Number of credits must belong to min-max interval!');
             setShowErrorModal(true);
@@ -78,12 +82,16 @@ function LoggedUserPage(props){
     };
 
     const handleDeleteStudyPlan = async () => {
-        await deleteStudyPlan();
-        await updateFullTimeStudent(null);
-        await props.getCoursesAsync();
-        setStudyPlan([]);
-        setFullTimeStudyPlan(null);
-        props.setToastData({show : true, title : 'Operation successfull', message : 'Study plan deleted, create a new one!'});
+        try{
+            await deleteStudyPlan();
+            await updateFullTimeStudent(null);
+            await props.getCoursesAsync();
+            setStudyPlan([]);
+            setFullTimeStudyPlan(null);
+            props.setToastData({show : true, title : 'Operation successfull', message : 'Study plan deleted, create a new one!'});
+        }catch(err){
+            props.setToastData({show : true, title : 'Operation failed!', message : `${err}`});
+        }
     };
 
     useEffect(() => {
