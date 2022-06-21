@@ -299,27 +299,27 @@ Error responses: `500 Internal Server Error`, `401 Not authenticated`
 
 ## Database Tables
 
-Table `COURSES`
+Table `COURSES`: stores all available courses
 |          CODE          |     NAME     | CREDITS          | MAX_STUDENTS | ENROLLED_STUDENTS | DEPENDENCY |
 |:----------------------:|:------------:|------------------|--------------|-------------------|------------|
 | VARCHAR(7) PRIMARY KEY | VARCHAR(100) | INTEGER NOT NULL | INTEGER      | INTEGER DEFAULT 0 | VARCHAR(7) |
 
-Table `INCOMPATIBILITIES`
+Table `INCOMPATIBILITIES`: stores all incompatible courses with the course they are not compatible with
 |       COURSE_CODE      | INCOMPATIBLE_COURSE_CODE |
 |:----------------------:|:------------------------:|
 | VARCHAR(7) PRIMARY KEY | VARCHAR(7) PRIMARY KEY   |
 
-Table `STUDENTS`
+Table `STUDENTS`: stores all students registered in the system
 |          EMAIL          |         NAME         |        SURNAME       |       PASSWORD       | FULLTIME |
 |:-----------------------:|:--------------------:|:--------------------:|:--------------------:|:--------:|
 | VARCHAR(50) PRIMARY KEY | VARCHAR(50) NOT NULL | VARCHAR(50) NOT NULL | VARCHAR(64) NOT NULL |  BOOLEAN |
 
-Table `STUDY_PLANS`
+Table `STUDY_PLANS`: stores all courses with the student they belong to the study plan of
 |       COURSE_CODE      |      STUDENT_EMAIL      |
 |:----------------------:|:-----------------------:|
 | VARCHAR(7) PRIMARY KEY | VARCHAR(50) PRIMARY KEY |
 
-Trigger `INCREASE_ENROLLED_STUDENTS`
+Trigger `INCREASE_ENROLLED_STUDENTS`: trigger used to increase the number of students enrolled to a course as soon as a new record is inserted in STUDY_PLANS table
 ```
 CREATE TRIGGER IF NOT EXISTS INCREASE_ENROLLED_STUDENTS
 AFTER INSERT ON STUDY_PLANS
@@ -330,7 +330,7 @@ WHERE CODE = NEW.COURSE_CODE;
 END;
 ```
 
-Trigger `DECREASE_ENROLLED_STUDENTS`
+Trigger `DECREASE_ENROLLED_STUDENTS`: trigger used to decrease the number of students enrolled to a course as soon as a record is deleted from STUDY_PLANS table
 ```
 CREATE TRIGGER IF NOT EXISTS DECREASE_ENROLLED_STUDENTS
 AFTER DELETE ON STUDY_PLANS
@@ -352,7 +352,7 @@ END;
 
 ## Screenshot
 
-![Screenshot](./img/screenshot.jpg)
+![Logged user page](./img/LoggedUserPage.png)
 
 ## Users Credentials
 
