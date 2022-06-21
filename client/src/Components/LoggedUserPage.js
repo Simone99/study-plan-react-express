@@ -43,6 +43,7 @@ function LoggedUserPage(props){
     const addCourseToStudyPlan = (course) => {
         if(isCourseValidToAdd(course, studyPlan, setErrorMessage)){
             setStudyPlan(oldStudyPlan => [...oldStudyPlan, course]);
+            setSelectedCourseToAdd(undefined);
         }else{
             setShowErrorModal(true);
         }
@@ -88,10 +89,19 @@ function LoggedUserPage(props){
             await props.getCoursesAsync();
             setStudyPlan([]);
             setFullTimeStudyPlan(null);
+            setSelectedCourseToAdd(undefined);
+            setSelectedCoursesToRemove([]);
             props.setToastData({show : true, title : 'Operation successfull', message : 'Study plan deleted, create a new one!'});
         }catch(err){
             props.setToastData({show : true, title : 'Operation failed!', message : `${err}`});
         }
+    };
+
+    const handleDropChanges = () => {
+        getStudyPlanAsync();
+        setSelectedCourseToAdd(undefined);
+        setSelectedCoursesToRemove([]);
+        props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});
     };
 
     useEffect(() => {
@@ -134,7 +144,7 @@ function LoggedUserPage(props){
                             }
                         </Card.Title>
                         <Card.Body>
-                            <StudyPlanList studyPlan = {studyPlan} selectOrRemoveCourse = {selectOrRemoveCourse}/>
+                            <StudyPlanList studyPlan = {studyPlan} coursesToRemove = {selectedCoursesToRemove} selectOrRemoveCourse = {selectOrRemoveCourse}/>
                             {
                                 fulltimeStudyPlan === null?
                                 ''
@@ -147,9 +157,8 @@ function LoggedUserPage(props){
                                     selectedCourseToAdd = {selectedCourseToAdd}
                                     selectedCoursesToRemove = {selectedCoursesToRemove}
                                     handleSaveChanges = {handleSaveChanges}
-                                    getStudyPlanAsync = {getStudyPlanAsync}
-                                    setToastData = {props.setToastData}
                                     handleDeleteStudyPlan = {handleDeleteStudyPlan}
+                                    handleDropChanges = {handleDropChanges}
                                 />
                             }
                         </Card.Body>
@@ -161,15 +170,14 @@ function LoggedUserPage(props){
 }
 
 function CoursesDropdown(props){
-    const [courseName, setCourseName] = useState('');
     return(
         <Dropdown>
             <Dropdown.Toggle variant="success" id="dropdown-basic">
-                {courseName? courseName : 'Select a course to add'}
+                {props.selectedCourseToAdd? props.selectedCourseToAdd.name : 'Select a course to add'}
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
-                {props.courses.map(course => <CoursesDropdownItem course = {course} setCourseName = {setCourseName} setSelectedCourseToAdd = {props.setSelectedCourseToAdd} key = {course.code}/>)}
+                {props.courses.map(course => <CoursesDropdownItem course = {course} selectedCourseToAdd = {props.selectedCourseToAdd} setSelectedCourseToAdd = {props.setSelectedCourseToAdd} key = {course.code}/>)}
             </Dropdown.Menu>
         </Dropdown>
     );
@@ -177,7 +185,7 @@ function CoursesDropdown(props){
 
 function CoursesDropdownItem(props){
     return(
-        <Dropdown.Item onClick = {() => {props.setCourseName(props.course.name); props.setSelectedCourseToAdd(props.course)}}>{props.course.name}</Dropdown.Item>
+        <Dropdown.Item onClick = {() => {props.setSelectedCourseToAdd(props.course)}}>{props.course.name}</Dropdown.Item>
     );
 }
 
@@ -239,7 +247,7 @@ function EditButtons(props){
             &nbsp;
             <Row className="justify-content-md-center">
                 <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
-                    <CoursesDropdown courses = {props.courses} setSelectedCourseToAdd = {props.setSelectedCourseToAdd}/>
+                    <CoursesDropdown courses = {props.courses} selectedCourseToAdd = {props.selectedCourseToAdd} setSelectedCourseToAdd = {props.setSelectedCourseToAdd}/>
                 </Col>
                 <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
                     <Button onClick = {() => props.addCourseToStudyPlan(props.selectedCourseToAdd)}>Add course</Button>
@@ -251,7 +259,7 @@ function EditButtons(props){
                     <Button onClick = {props.handleSaveChanges}>Save changes</Button>
                 </Col>
                 <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
-                    <Button variant="warning" onClick = {() => {props.getStudyPlanAsync(); props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});}}>Drop changes</Button>
+                    <Button variant="warning" onClick = {props.handleDropChanges}>Drop changes</Button>
                 </Col>
             </Row>
             &nbsp;
@@ -260,7 +268,7 @@ function EditButtons(props){
                     <Button onClick = {() => props.removeCoursesFromStudyPlan(props.selectedCoursesToRemove)}>Remove selected courses</Button>
                 </Col>
                 <Col xs={6} style={{display: 'flex', justifyContent: 'center'}}>
-                    <Button variant="danger" onClick = {() => {props.handleDeleteStudyPlan()}}>Delete study plan</Button>
+                    <Button variant="danger" onClick = {props.handleDeleteStudyPlan}>Delete study plan</Button>
                 </Col>
             </Row>
         </>
