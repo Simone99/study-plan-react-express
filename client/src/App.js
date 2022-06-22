@@ -37,8 +37,9 @@ function App() {
   const updateEnrolledStudents = (course, increaseAmount) => {
     setCourses(oldList => oldList.map(c => {
       if(c.code === course.code){
-        c.enrolledStudents += increaseAmount;
-        return {...c};
+        const tmp = {...c};
+        tmp.enrolledStudents += increaseAmount;
+        return tmp;
       }else{
         return c;
       }

@@ -228,8 +228,9 @@ function FullTimeSwitch(props){
                 if(props.fulltimeStudyPlan === null)
                     //userState.loggedUser.fulltime = true;
                     userState.setLoggedUser(prev => {
-                        prev.fulltime = true;
-                        return {...prev};
+                        const tmp = {...prev};
+                        tmp.fulltime = true;
+                        return tmp;
                     });
                 props.setFullTimeStudyPlan(true);
                 /*added userState.loggedUser.fulltime = true because if the user has never created a study plan before all previous condition will always return false due to 'userState.loggedUser.fulltime !== null' condition*/
@@ -245,8 +246,9 @@ function FullTimeSwitch(props){
             onClick={() => {
                 if(props.fulltimeStudyPlan === null)
                     userState.setLoggedUser(prev => {
-                        prev.fulltime = false;
-                        return {...prev};
+                        const tmp = {...prev};
+                        tmp.fulltime = false;
+                        return tmp;
                     });
 
                 props.setFullTimeStudyPlan(false);
