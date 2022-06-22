@@ -14,7 +14,7 @@ function LoggedUserPage(props){
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     /*fulltime is stored as an INTEGER in sqlite so in this way I can convert the number into the matching boolean value*/
-    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime === 1);
+    const [fulltimeStudyPlan, setFullTimeStudyPlan] = useState(userState.loggedUser.fulltime === null? null : userState.loggedUser.fulltime == 1);
 
     const creditsBoundaries = {
         true : [60, 80],
@@ -30,6 +30,7 @@ function LoggedUserPage(props){
             console.log(err);
           }  
         }
+        return;
     };
 
     const selectOrRemoveCourse = (course, remove) => {
@@ -43,6 +44,7 @@ function LoggedUserPage(props){
     const addCourseToStudyPlan = (course) => {
         if(isCourseValidToAdd(course, studyPlan, setErrorMessage)){
             setStudyPlan(oldStudyPlan => [...oldStudyPlan, course]);
+            props.updateEnrolledStudents(course, 1);
             setSelectedCourseToAdd(undefined);
         }else{
             setShowErrorModal(true);
@@ -55,6 +57,7 @@ function LoggedUserPage(props){
                 if(isCourseValidToRemove(course, studyPlan, courses, setErrorMessage)){
                     setStudyPlan(oldList => oldList.filter(c => c.code !== course.code));
                     setSelectedCoursesToRemove(oldList => oldList.filter(c => c.code !== course.code));
+                    props.updateEnrolledStudents(course, -1);
                 }else{
                     setShowErrorModal(true);
                 }
@@ -97,11 +100,16 @@ function LoggedUserPage(props){
         }
     };
 
-    const handleDropChanges = () => {
-        getStudyPlanAsync();
-        setSelectedCourseToAdd(undefined);
-        setSelectedCoursesToRemove([]);
-        props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});
+    const handleDropChanges = async () => {
+        try{
+            await getStudyPlanAsync();
+            await props.getCoursesAsync();
+            setSelectedCourseToAdd(undefined);
+            setSelectedCoursesToRemove([]);
+            props.setToastData({show : true, title : 'Operation successfull', message : 'All changes dropped!'});    
+        }catch(err){
+            props.setToastData({show : true, title : 'Operation failed!', message : `${err}`});
+        }
     };
 
     useEffect(() => {
@@ -218,7 +226,11 @@ function FullTimeSwitch(props){
             checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan === true}
             onClick={() => {
                 if(props.fulltimeStudyPlan === null)
-                    userState.loggedUser.fulltime = true;
+                    //userState.loggedUser.fulltime = true;
+                    userState.setLoggedUser(prev => {
+                        prev.fulltime = true;
+                        return {...prev};
+                    });
                 props.setFullTimeStudyPlan(true);
                 /*added userState.loggedUser.fulltime = true because if the user has never created a study plan before all previous condition will always return false due to 'userState.loggedUser.fulltime !== null' condition*/
                 }}>
@@ -232,7 +244,11 @@ function FullTimeSwitch(props){
             checked={props.fulltimeStudyPlan !== null && props.fulltimeStudyPlan === false}
             onClick={() => {
                 if(props.fulltimeStudyPlan === null)
-                    userState.loggedUser.fulltime = false;
+                    userState.setLoggedUser(prev => {
+                        prev.fulltime = false;
+                        return {...prev};
+                    });
+
                 props.setFullTimeStudyPlan(false);
                 }}>
                 Part time

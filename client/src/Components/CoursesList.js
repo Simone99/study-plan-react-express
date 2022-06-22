@@ -43,7 +43,7 @@ function CoursesListRow(props){
         }else{
             setValid(true);
         }
-    }, [props.studyPlan]);
+    }, [props.studyPlan, props.course]);/* Added props.course because we have to check the validity of the course again even if the only parameter that can change during the editing session of a study plan is enrolledStudents*/
 
     return (
             valid?

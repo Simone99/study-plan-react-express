@@ -34,6 +34,17 @@ function App() {
     return;
   };
 
+  const updateEnrolledStudents = (course, increaseAmount) => {
+    setCourses(oldList => oldList.map(c => {
+      if(c.code === course.code){
+        c.enrolledStudents += increaseAmount;
+        return {...c};
+      }else{
+        return c;
+      }
+    }));
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const user = await getUserInfo();
@@ -53,7 +64,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element = {<Layout toastData = {toastData} setToastData = {setToastData}/>}>
-              <Route index element={loggedUser? <LoggedUserPage courses = {courses} setToastData = {setToastData} getCoursesAsync = {getCoursesAsync}/> : <HomePage courses = {courses}/>}/>
+              <Route index element={loggedUser? <LoggedUserPage courses = {courses} setToastData = {setToastData} getCoursesAsync = {getCoursesAsync} updateEnrolledStudents = {updateEnrolledStudents}/> : <HomePage courses = {courses}/>}/>
               <Route path="/login" element={<LoginForm setToastData = {setToastData}/>}/>
             </Route>
           </Routes>
