@@ -66,6 +66,7 @@ function App() {
             <Route path="/" element = {<Layout toastData = {toastData} setToastData = {setToastData}/>}>
               <Route index element={loggedUser? <LoggedUserPage courses = {courses} setToastData = {setToastData} getCoursesAsync = {getCoursesAsync} updateEnrolledStudents = {updateEnrolledStudents}/> : <HomePage courses = {courses}/>}/>
               <Route path="/login" element={<LoginForm setToastData = {setToastData}/>}/>
+              <Route path="*" element={<><h1>No content here!</h1><h2>Try not modifying the URL please...</h2></>}/>
             </Route>
           </Routes>
         </Router>
